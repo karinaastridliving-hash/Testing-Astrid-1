@@ -93,8 +93,8 @@
     const tags = [l.live ? `<span class="tag warn">Found online – verify</span>` : /^s\d+$/.test(l.id) ? `<span class="tag warn">Sample data</span>` : "", l.utilities ? `<span class="tag ok">Utilities incl.</span>` : "", l.petFriendly ? `<span class="tag ok">Pets OK</span>` : ""]
       .concat(l.amenities.map((a) => `<span class="tag">${esc(a)}</span>`)).join("");
     const on = shortlist.has(l.id);
-    return `<article class="card">
-      <div class="hero" style="background:linear-gradient(135deg,hsl(${hue(l.city)} 55% 40%),hsl(${(hue(l.city) + 50) % 360} 55% 30%))">${esc(l.city)}${l.neighborhood ? " · " + esc(l.neighborhood) : ""}</div>
+    return `<article class="card${l.live ? " live" : ""}">
+      <div class="hero">${esc(l.city)}${l.neighborhood ? " · " + esc(l.neighborhood) : ""}</div>
       <div class="body">
         <h3>${esc(l.name)}</h3>
         <div class="meta">${bedLabel(l.beds)} · ${l.baths} BA${l.sqft ? " · " + l.sqft + " sq ft" : ""} · sleeps ${l.sleeps}</div>
