@@ -12,7 +12,9 @@
 
   let feedListings = [];
   let liveListings = [];
-  const all = () => liveListings.concat(feedListings, userListings, store.get("chs.hideSample", false) ? [] : window.SAMPLE_LISTINGS);
+  let hotelListings = []; // Astrid's own inventory, loaded from inventory.csv
+  const sampleHidden = () => hotelListings.length > 0 || store.get("chs.hideSample", false);
+  const all = () => liveListings.concat(hotelListings, feedListings, userListings, sampleHidden() ? [] : window.SAMPLE_LISTINGS);
 
   const money = (n) => "$" + Math.round(n).toLocaleString();
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -85,12 +87,14 @@
       ? rows.map((l) => card(l, f)).join("")
       : `<p class="empty">No listings match. Try loosening your filters.</p>`;
     $("#short-count").textContent = shortlist.size;
-    $(".notice").hidden = store.get("chs.hideSample", false);
+    $(".notice").hidden = sampleHidden();
+    $("#btn-sample").hidden = hotelListings.length > 0;
+    $("#btn-sample").textContent = store.get("chs.hideSample", false) ? "Show sample data" : "Hide sample data";
   }
 
   function card(l, f) {
     const total = f.nights && l.monthly ? `<div class="meta">≈ ${money((l.monthly / 30) * f.nights)} for ${f.nights} nights</div>` : "";
-    const tags = [l.live ? `<span class="tag warn">Found online – verify</span>` : /^s\d+$/.test(l.id) ? `<span class="tag warn">Sample data</span>` : "", l.utilities ? `<span class="tag ok">Utilities incl.</span>` : "", l.petFriendly ? `<span class="tag ok">Pets OK</span>` : ""]
+    const tags = [l.hotel ? `<span class="tag ok">Astrid inventory</span>` : "", l.live ? `<span class="tag warn">Found online – verify</span>` : /^s\d+$/.test(l.id) ? `<span class="tag warn">Sample data</span>` : "", l.utilities ? `<span class="tag ok">Utilities incl.</span>` : "", l.petFriendly ? `<span class="tag ok">Pets OK</span>` : ""]
       .concat(l.amenities.map((a) => `<span class="tag">${esc(a)}</span>`)).join("");
     const on = shortlist.has(l.id);
     return `<article class="card${l.live ? " live" : ""}">
@@ -301,6 +305,25 @@
     } finally { btn.disabled = false; }
   }
   $("#btn-live").addEventListener("click", liveSearch);
+  $("#btn-sample").addEventListener("click", () => {
+    store.set("chs.hideSample", !store.get("chs.hideSample", false));
+    buildFilterOptions(); render();
+  });
+
+  async function loadInventory() {
+    try {
+      const res = await fetch("inventory.csv", { cache: "no-store" });
+      if (!res.ok) return;
+      const rows = parseCSV(await res.text());
+      const head = rows.shift().map((x) => x.trim());
+      hotelListings = rows.map((r, i) => {
+        const l = normalize(Object.fromEntries(head.map((x, j) => [x, r[j] ?? ""])));
+        if (l) { l.id = "h" + i; l.hotel = true; l.imported = false; }
+        return l;
+      }).filter(Boolean);
+      buildFilterOptions(); render();
+    } catch { /* no inventory.csv yet */ }
+  }
   $("#btn-test").addEventListener("click", async () => {
     const status = $("#live-status");
     if (!window.LIVE_SEARCH_URL) { status.textContent = "Live search isn't connected yet."; return; }
@@ -318,6 +341,7 @@
 
   buildFilterOptions();
   render();
+  loadInventory();
   const feedUrl = store.get("chs.feed", "");
   if (feedUrl) loadFeed(feedUrl, false);
 })();
