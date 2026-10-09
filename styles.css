@@ -122,3 +122,5 @@ td.best { color: var(--ok); font-weight: 600; }
 :root { color-scheme: light; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme: dark; } }
 :root[data-theme="dark"] { color-scheme: dark; }
+.more { grid-column: 1 / -1; text-align: center; padding: 8px 0 0; }
+[hidden] { display: none !important; }

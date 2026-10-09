@@ -42,6 +42,10 @@ Cost controls: the worker uses Claude Haiku 5.5 with low effort, at most 4 web s
 
 Notes: results are AI-gathered from public web pages and **must be verified** on the source page (price, availability, terms). The worker only accepts requests from `ALLOWED_ORIGIN`, but that is not strong protection: keep the spend limit on.
 
+## Astrid inventory (`inventory.csv`)
+
+`inventory.csv` is loaded automatically when the site opens and is shown as "Astrid inventory" (the sample data is then hidden). It holds the 839 properties from the Hosteeva "Property Search" export: name, city, bedrooms, bathrooms, property ID (in the notes) and the FAQ link where one exists. The export has no rates, minimum stay, capacity, size or amenities, so those show as unknown ("Price on request", "—") instead of guessed values. To update the inventory, replace `inventory.csv` using the same columns as below.
+
 ## Data
 
 `data.js` holds **fictional sample listings**. Add real ones with the "Add listing" button or "Import CSV".

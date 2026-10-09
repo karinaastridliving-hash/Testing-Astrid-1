@@ -62,7 +62,7 @@
     if (f.city && !l.city.toLowerCase().includes(f.city.toLowerCase())) return false;
     if (f.nights && l.minNights > f.nights) return false;
     if (f.beds !== null && l.beds < f.beds) return false;
-    if (f.guests && l.sleeps < f.guests) return false;
+    if (f.guests && l.sleeps && l.sleeps < f.guests) return false;
     if (f.budget < 10000 && l.monthly > f.budget) return false;
     if (f.provider && l.provider !== f.provider) return false;
     if (f.pets && !l.petFriendly) return false;
@@ -78,13 +78,17 @@
   };
 
   // ---------- results ----------
+  const PAGE = 60;
+  let shown = PAGE;
+
   function render() {
     const f = filters();
     $("#o-budget").textContent = f.budget >= 10000 ? "Any" : money(f.budget);
     const rows = all().filter((l) => matches(l, f)).sort(sorters[$("#f-sort").value]);
     $("#count").textContent = `${rows.length} listing${rows.length === 1 ? "" : "s"}`;
     $("#cards").innerHTML = rows.length
-      ? rows.map((l) => card(l, f)).join("")
+      ? rows.slice(0, shown).map((l) => card(l, f)).join("") +
+        (rows.length > shown ? `<div class="more"><button id="btn-more" class="btn" type="button">Show ${Math.min(PAGE, rows.length - shown)} more (${rows.length - shown} not shown)</button></div>` : "")
       : `<p class="empty">No listings match. Try loosening your filters.</p>`;
     $("#short-count").textContent = shortlist.size;
     $(".notice").hidden = sampleHidden();
@@ -106,10 +110,10 @@
       <div class="hero">${esc(l.city)}${l.neighborhood ? " · " + esc(l.neighborhood) : ""}</div>
       <div class="body">
         <h3>${esc(l.name)}</h3>
-        <div class="meta">${bedLabel(l.beds)} · ${l.baths} BA${l.sqft ? " · " + l.sqft + " sq ft" : ""} · sleeps ${l.sleeps}</div>
+        <div class="meta">${[bedLabel(l.beds), l.baths ? l.baths + " BA" : "", l.sqft ? l.sqft + " sq ft" : "", l.sleeps ? "sleeps " + l.sleeps : ""].filter(Boolean).join(" · ")}</div>
         <div class="price">${l.monthly ? money(l.monthly) + ` <small>/ month · ${money(l.monthly / 30)}/night</small>` : "<small>Price on request</small>"}</div>
         ${total}
-        <div class="meta">${esc(l.provider || "Unknown provider")} · min ${l.minNights} nights</div>
+        <div class="meta">${esc(l.provider || "Unknown provider")}${l.minNights ? " · min " + l.minNights + " nights" : ""}</div>
         <div class="tags">${tags}</div>
         ${l.notes ? `<div class="meta">${esc(l.notes)}</div>` : ""}
       </div>
@@ -126,20 +130,21 @@
   function renderShortlist() {
     const items = shortItems();
     if (!items.length) { $("#short-body").innerHTML = `<p class="empty">Nothing shortlisted yet.</p>`; return; }
-    const min = Math.min(...items.map((l) => l.monthly));
+    const priced = items.map((l) => l.monthly).filter(Boolean);
+    const min = priced.length ? Math.min(...priced) : -1;
     const row = (label, fn, cls) => `<tr><th>${label}</th>${items.map((l) => `<td class="${cls ? cls(l) : ""}">${fn(l)}</td>`).join("")}</tr>`;
     $("#short-body").innerHTML = `<div class="tablewrap"><table>
       ${row("", (l) => `<strong>${esc(l.name)}</strong><br><button class="btn" data-short="${esc(l.id)}">Remove</button>`)}
       ${row("Location", (l) => esc(l.city + (l.neighborhood ? " · " + l.neighborhood : "")))}
-      ${row("Monthly", (l) => money(l.monthly), (l) => (l.monthly === min ? "best" : ""))}
-      ${row("Per night", (l) => money(l.monthly / 30))}
-      ${row("Layout", (l) => `${bedLabel(l.beds)} / ${l.baths} BA${l.sqft ? " / " + l.sqft + " sq ft" : ""}`)}
-      ${row("Sleeps", (l) => l.sleeps)}
-      ${row("Min stay", (l) => l.minNights + " nights")}
-      ${row("Utilities", (l) => (l.utilities ? "Included" : "Extra"))}
-      ${row("Pets", (l) => (l.petFriendly ? "Yes" : "No"))}
+      ${row("Monthly", (l) => (l.monthly ? money(l.monthly) : "On request"), (l) => (l.monthly && l.monthly === min ? "best" : ""))}
+      ${row("Per night", (l) => (l.monthly ? money(l.monthly / 30) : "—"))}
+      ${row("Layout", (l) => [bedLabel(l.beds), l.baths ? l.baths + " BA" : "", l.sqft ? l.sqft + " sq ft" : ""].filter(Boolean).join(" / "))}
+      ${row("Sleeps", (l) => l.sleeps || "—")}
+      ${row("Min stay", (l) => (l.minNights ? l.minNights + " nights" : "—"))}
+      ${row("Utilities", (l) => (l.utilities ? "Included" : "Not stated"))}
+      ${row("Pets", (l) => (l.petFriendly ? "Yes" : "Not stated"))}
       ${row("Provider", (l) => esc(l.provider))}
-      ${row("Amenities", (l) => esc(l.amenities.join(", ")))}
+      ${row("Amenities", (l) => esc(l.amenities.join(", ") || "—"))}
     </table></div>`;
   }
 
@@ -155,7 +160,7 @@
   function inquiryText() {
     const f = filters();
     const move = $("#f-movein").value;
-    const lines = shortItems().map((l) => `- ${l.name} (${l.city}${l.neighborhood ? ", " + l.neighborhood : ""}) — ${bedLabel(l.beds)}, listed at ${money(l.monthly)}/month`);
+    const lines = shortItems().map((l) => `- ${l.name} (${l.city}${l.neighborhood ? ", " + l.neighborhood : ""}) — ${bedLabel(l.beds)}${l.monthly ? ", listed at " + money(l.monthly) + "/month" : ""}${l.notes ? " [" + l.notes + "]" : ""}`);
     return `Hi,\n\nI'm sourcing corporate housing and am interested in the following:\n\n${lines.join("\n")}\n\nRequirements:\n- Move-in: ${move || "[date]"}\n- Length of stay: ${f.nights ? f.nights + " nights" : "[nights]"}\n- Guests: ${f.guests || "[#]"}\n\nCould you confirm availability, all-in pricing (taxes, fees, utilities, parking), cancellation / early-termination terms, and invoicing options for corporate billing?\n\nThank you,`;
   }
 
@@ -170,12 +175,12 @@
   function normalize(o) {
     const bool = (v) => v === true || /^(true|yes|y|1)$/i.test(String(v).trim());
     const amen = Array.isArray(o.amenities) ? o.amenities : String(o.amenities || "").split(/[;,]/).map((s) => s.trim()).filter(Boolean);
-    const monthly = +o.monthly;
-    if (!o.name || !o.city || !(monthly >= 0) || o.monthly === "") return null;
+    const monthly = o.monthly === "" || o.monthly == null ? 0 : +o.monthly; // 0 = price on request
+    if (!o.name || !o.city || !(monthly >= 0)) return null;
     return {
       id: "u" + Date.now() + Math.random().toString(36).slice(2, 7),
       name: String(o.name).trim(), provider: String(o.provider || "").trim(), city: String(o.city).trim(), neighborhood: String(o.neighborhood || "").trim(),
-      beds: +o.beds || 0, baths: +o.baths || 1, sqft: +o.sqft || 0, sleeps: +o.sleeps || 2, monthly, minNights: +o.minNights || 30,
+      beds: +o.beds || 0, baths: +o.baths || 0, sqft: +o.sqft || 0, sleeps: +o.sleeps || 0, monthly, minNights: +o.minNights || 0,
       utilities: bool(o.utilities), petFriendly: bool(o.petFriendly), amenities: amen, notes: String(o.notes || "").trim(), imported: true, url: /^https?:\/\//.test(o.url || "") ? o.url : "",
     };
   }
@@ -204,13 +209,15 @@
     if ($("#dlg-short").open) renderShortlist();
   });
 
-  ["#f-q", "#f-city", "#f-nights", "#f-beds", "#f-guests", "#f-budget", "#f-provider", "#f-pets", "#f-util", "#f-sort"].forEach((s) => $(s).addEventListener("input", render));
-  $("#f-amenities").addEventListener("change", render);
+  const rerender = () => { shown = PAGE; render(); };
+  ["#f-q", "#f-city", "#f-nights", "#f-beds", "#f-guests", "#f-budget", "#f-provider", "#f-pets", "#f-util", "#f-sort"].forEach((s) => $(s).addEventListener("input", rerender));
+  $("#f-amenities").addEventListener("change", rerender);
+  $("#cards").addEventListener("click", (e) => { if (e.target.closest("#btn-more")) { shown += PAGE; render(); } });
   $("#btn-reset").addEventListener("click", () => {
     document.querySelectorAll(".filters input, .filters select").forEach((el) => {
       if (el.type === "checkbox") el.checked = false; else if (el.type === "range") el.value = el.max; else el.value = "";
     });
-    render();
+    rerender();
   });
 
   $("#btn-shortlist").addEventListener("click", () => { renderShortlist(); $("#dlg-short").showModal(); });
