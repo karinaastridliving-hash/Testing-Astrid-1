@@ -3,43 +3,54 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Corporate Housing Sourcing Tool</title>
+  <title>Astrid Living · Sourcing Studio</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="topbar">
     <div class="wrap bar">
-      <h1 class="brand"><img id="logo" src="logo.png" alt="Astrid Living" height="38" onerror="this.remove()"><span>Corporate Housing Sourcer</span></h1>
-      <nav>
-        <button id="btn-sample" class="btn" type="button">Hide sample data</button>
-        <button id="btn-feed" class="btn" title="Load inventory from a published Google Sheet / CSV link">Inventory feed</button>
-        <button id="btn-add" class="btn">+ Add listing</button>
-        <label class="btn">Import CSV<input id="file-import" type="file" accept=".csv" hidden></label>
-        <button id="btn-shortlist" class="btn primary">Shortlist <span id="short-count" class="badge">0</span></button>
-      </nav>
+      <div class="brand">
+        <img id="logo" src="logo.png" alt="Astrid Living" onerror="this.remove()">
+        <span class="studio">Sourcing Studio</span>
+      </div>
+      <p class="tagline">Find a place. Create an experience.</p>
     </div>
   </header>
 
-  <main class="wrap layout">
-    <aside class="filters" aria-label="Filters">
-      <div class="notice">Showing <strong>sample data</strong>. Add or import real listings to replace it.</div>
+  <section class="wrap hero-block">
+    <p class="eyebrow">Your corporate housing workspace</p>
+    <h1>A better stay starts here.</h1>
+    <p class="lede">Turn a housing brief into focused searches, then bring the strongest options into one shortlist.</p>
+    <nav class="tools" aria-label="Workspace tools">
+      <button id="btn-sample" class="btn" type="button">Hide sample data</button>
+      <button id="btn-feed" class="btn" title="Load inventory from a published Google Sheet / CSV link">Inventory feed</button>
+      <button id="btn-add" class="btn">+ Add listing</button>
+      <label class="btn">Import CSV<input id="file-import" type="file" accept=".csv" hidden></label>
+      <button id="btn-shortlist" class="btn primary">Shortlist <span id="short-count" class="badge">0</span></button>
+    </nav>
+  </section>
 
-      <label>Search
-        <input id="f-q" type="search" placeholder="Name, neighborhood, provider…">
-      </label>
-      <label>City
-        <input id="f-city" list="city-list" placeholder="Type any city, e.g. Miami" autocomplete="off">
-        <datalist id="city-list"></datalist>
-      </label>
-      <div class="row2">
+  <main class="wrap workspace">
+    <section class="panel filters" aria-label="Build your search">
+      <h2>Build your search</h2>
+      <div class="notice">Showing <strong>sample data</strong>. Add or import real listings to replace it.</div>
+      <div class="fgrid">
+        <label class="span2">Search
+          <input id="f-q" type="search" placeholder="Name, neighborhood, provider…">
+        </label>
+        <label>City or area
+          <input id="f-city" list="city-list" placeholder="e.g. Miami, Brickell" autocomplete="off">
+          <datalist id="city-list"></datalist>
+        </label>
+        <label>Provider
+          <select id="f-provider"><option value="">Any provider</option></select>
+        </label>
         <label>Move-in
           <input id="f-movein" type="date">
         </label>
         <label>Nights
           <input id="f-nights" type="number" min="1" placeholder="e.g. 90">
         </label>
-      </div>
-      <div class="row2">
         <label>Min bedrooms
           <select id="f-beds">
             <option value="">Any</option><option value="0">Studio+</option>
@@ -49,42 +60,50 @@
         <label>Guests
           <input id="f-guests" type="number" min="1" placeholder="1">
         </label>
-      </div>
-      <label>Max monthly budget: <output id="o-budget">Any</output>
-        <input id="f-budget" type="range" min="1000" max="10000" step="100" value="10000">
-      </label>
-      <label>Provider
-        <select id="f-provider"><option value="">Any provider</option></select>
-      </label>
-      <fieldset>
-        <legend>Must have</legend>
-        <div id="f-amenities" class="checks"></div>
-        <label class="check"><input id="f-pets" type="checkbox"> Pet friendly</label>
-        <label class="check"><input id="f-util" type="checkbox"> Utilities included</label>
-      </fieldset>
-      <button id="btn-reset" class="btn">Reset filters</button>
-    </aside>
-
-    <section class="results">
-      <div class="toolbar">
-        <p id="count" aria-live="polite"></p>
-        <label class="inline">Sort
-          <select id="f-sort">
-            <option value="price-asc">Price: low → high</option>
-            <option value="price-desc">Price: high → low</option>
-            <option value="size-desc">Size: largest</option>
-            <option value="ppsf-asc">Cheapest per sq ft</option>
-          </select>
+        <label class="span2">Max monthly budget (USD): <output id="o-budget">Any</output>
+          <input id="f-budget" type="range" min="1000" max="10000" step="100" value="10000">
         </label>
+        <fieldset class="span2">
+          <legend>Must have</legend>
+          <div id="f-amenities" class="checks"></div>
+          <label class="check"><input id="f-pets" type="checkbox"> Pet friendly</label>
+          <label class="check"><input id="f-util" type="checkbox"> Utilities included</label>
+        </fieldset>
+      </div>
+      <button id="btn-reset" class="btn">Reset filters</button>
+    </section>
+
+    <section class="panel sources" aria-label="Explore your sources">
+      <h2>Explore your sources</h2>
+      <p class="sub">Astrid inventory, your own feeds and the open web, searched together without leaving this page.</p>
+      <div class="tiles">
+        <div class="tile"><span class="tile-n" id="tile-inv-n">0</span><span class="tile-l" id="tile-inv-l">Astrid inventory</span></div>
+        <div class="tile"><span class="tile-n" id="tile-live-n">0</span><span class="tile-l">Found on the web</span></div>
+        <div class="tile"><span class="tile-n" id="tile-feed-n">0</span><span class="tile-l">Feed &amp; imports</span></div>
+        <div class="tile"><span class="tile-n" id="tile-short-n">0</span><span class="tile-l">Shortlisted</span></div>
       </div>
       <div class="live">
-        <button id="btn-live" class="btn primary">🔎 Live search with these filters</button>
-        <button id="btn-test" class="btn" type="button">Test connection</button>
-        <span id="live-status" class="meta"></span>
+        <button id="btn-live" class="btn primary big">🔎 Live search with these filters</button>
+        <div id="live-status" class="meta" aria-live="polite">Searches the web for real listings that match your brief. Always verify price and availability on the source page.</div>
+        <button id="btn-test" class="btn linky" type="button">Test connection</button>
       </div>
-      <div id="cards" class="cards"></div>
     </section>
   </main>
+
+  <section class="wrap results">
+    <div class="toolbar">
+      <div><h2>Results</h2><p id="count" aria-live="polite"></p></div>
+      <label class="inline">Sort
+        <select id="f-sort">
+          <option value="price-asc">Price: low → high</option>
+          <option value="price-desc">Price: high → low</option>
+          <option value="size-desc">Size: largest</option>
+          <option value="ppsf-asc">Cheapest per sq ft</option>
+        </select>
+      </label>
+    </div>
+    <div id="cards" class="cards"></div>
+  </section>
 
   <!-- Shortlist / compare drawer -->
   <dialog id="dlg-short">

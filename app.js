@@ -88,6 +88,11 @@
       : `<p class="empty">No listings match. Try loosening your filters.</p>`;
     $("#short-count").textContent = shortlist.size;
     $(".notice").hidden = sampleHidden();
+    $("#tile-inv-n").textContent = hotelListings.length || (sampleHidden() ? 0 : window.SAMPLE_LISTINGS.length);
+    $("#tile-inv-l").textContent = hotelListings.length || sampleHidden() ? "Astrid inventory" : "Sample properties";
+    $("#tile-live-n").textContent = liveListings.length;
+    $("#tile-feed-n").textContent = feedListings.length + userListings.length;
+    $("#tile-short-n").textContent = shortlist.size;
     $("#btn-sample").hidden = hotelListings.length > 0;
     $("#btn-sample").textContent = store.get("chs.hideSample", false) ? "Show sample data" : "Hide sample data";
   }
