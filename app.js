@@ -21,6 +21,8 @@
   const toast = (m) => { const t = $("#toast"); t.textContent = m; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2000); };
 
   // ---------- filters ----------
+  const COMMON_CITIES = ["Atlanta", "Austin", "Boston", "Charlotte", "Chicago", "Dallas", "Denver", "Houston", "Jersey City", "Los Angeles", "Miami", "Nashville", "New York", "Newark", "Philadelphia", "Phoenix", "Raleigh", "San Diego", "San Francisco", "San Jose", "Seattle", "Tampa", "Washington DC"];
+
   function buildFilterOptions() {
     const list = all();
     const fill = (sel, vals) => {
@@ -29,7 +31,8 @@
       [...new Set(vals)].filter(Boolean).sort().forEach((v) => sel.add(new Option(v, v)));
       sel.value = cur;
     };
-    fill($("#f-city"), list.map((l) => l.city));
+    const cities = [...new Set(list.map((l) => l.city).concat(COMMON_CITIES))].filter(Boolean).sort();
+    $("#city-list").innerHTML = cities.map((c) => `<option value="${esc(c)}"></option>`).join("");
     fill($("#f-provider"), list.map((l) => l.provider));
   }
   $("#f-amenities").innerHTML = AMENITIES.map((a) => `<label class="check"><input type="checkbox" value="${a}"> ${a}</label>`).join("");
@@ -37,7 +40,7 @@
   function filters() {
     return {
       q: $("#f-q").value.trim().toLowerCase(),
-      city: $("#f-city").value,
+      city: $("#f-city").value.trim(),
       nights: +$("#f-nights").value || 0,
       beds: $("#f-beds").value === "" ? null : +$("#f-beds").value,
       guests: +$("#f-guests").value || 0,
@@ -54,7 +57,7 @@
     // so only enforce the budget (when a price is known) instead of hiding them.
     if (l.live) return !(f.budget < 10000 && l.monthly && l.monthly > f.budget);
     if (f.q && !`${l.name} ${l.neighborhood} ${l.provider} ${l.city}`.toLowerCase().includes(f.q)) return false;
-    if (f.city && l.city !== f.city) return false;
+    if (f.city && !l.city.toLowerCase().includes(f.city.toLowerCase())) return false;
     if (f.nights && l.minNights > f.nights) return false;
     if (f.beds !== null && l.beds < f.beds) return false;
     if (f.guests && l.sleeps < f.guests) return false;
@@ -268,6 +271,7 @@
     const status = $("#live-status");
     if (!url) { status.textContent = "Live search isn't connected yet. See README → Live search."; return; }
     const f = filters();
+    if (!f.city) { status.textContent = "Type a city first (any city, e.g. Miami), then click Live search."; return; }
     const body = { city: f.city, beds: f.beds, guests: f.guests, budget: f.budget, nights: f.nights, movein: $("#f-movein").value, pets: f.pets, utilities: f.util, amenities: f.amenities, q: f.q };
     const key = JSON.stringify(body);
     const cache = store.get("chs.liveCache", {});

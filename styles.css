@@ -65,3 +65,5 @@ td.best { color: var(--ok); font-weight: 600; }
 .web a.btn { text-decoration: none; font-size: 13px; padding: 5px 10px; }
 .live { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
 .tag.warn { color: #b26a00; border-color: #b26a00; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand img { height: 32px; width: auto; }

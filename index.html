@@ -9,7 +9,7 @@
 <body>
   <header class="topbar">
     <div class="wrap bar">
-      <h1>Corporate Housing Sourcer</h1>
+      <h1 class="brand"><img id="logo" src="logo.png" alt="Astrid" height="32" onerror="this.remove()"><span>Corporate Housing Sourcer</span></h1>
       <nav>
         <button id="btn-feed" class="btn" title="Load inventory from a published Google Sheet / CSV link">Inventory feed</button>
         <button id="btn-add" class="btn">+ Add listing</button>
@@ -27,7 +27,8 @@
         <input id="f-q" type="search" placeholder="Name, neighborhood, provider…">
       </label>
       <label>City
-        <select id="f-city"><option value="">Any city</option></select>
+        <input id="f-city" list="city-list" placeholder="Type any city, e.g. Miami" autocomplete="off">
+        <datalist id="city-list"></datalist>
       </label>
       <div class="row2">
         <label>Move-in
