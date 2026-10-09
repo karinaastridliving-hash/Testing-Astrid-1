@@ -79,21 +79,7 @@
       ? rows.map((l) => card(l, f)).join("")
       : `<p class="empty">No listings match. Try loosening your filters.</p>`;
     $("#short-count").textContent = shortlist.size;
-    renderWebLinks(f);
     $(".notice").hidden = store.get("chs.hideSample", false);
-  }
-
-  const WEB_SOURCES = [
-    ["Furnished Finder", "furnishedfinder.com"], ["Landing", "hellolanding.com"], ["Oakwood", "oakwood.com"],
-    ["Sentral", "sentral.com"], ["Corporate Housing by Owner", "corporatehousingbyowner.com"],
-    ["Airbnb (monthly)", "airbnb.com"], ["Apartments.com", "apartments.com"], ["Zillow", "zillow.com"],
-  ];
-  function renderWebLinks(f) {
-    const parts = [f.beds === 0 ? "studio" : f.beds ? f.beds + " bedroom" : "", "furnished", f.city, f.pets ? "pet friendly" : "",
-      f.budget < 10000 ? "under $" + f.budget + " month" : "", f.nights >= 28 ? "monthly rental" : "corporate housing"].filter(Boolean).join(" ");
-    const g = (q) => "https://www.google.com/search?q=" + encodeURIComponent(q);
-    $("#web-links").innerHTML = [`<a class="btn primary" target="_blank" rel="noopener" href="${g(parts)}">Google: all sites</a>`]
-      .concat(WEB_SOURCES.map(([n, s]) => `<a class="btn" target="_blank" rel="noopener" href="${g("site:" + s + " " + parts)}">${n}</a>`)).join("");
   }
 
   function card(l, f) {

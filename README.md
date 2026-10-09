@@ -19,9 +19,8 @@ python3 -m http.server 8000   # then open http://localhost:8000
 - One-click "Copy inquiry email" to send to providers
 - Add listings by hand, or import a CSV
 
-## Web search and inventory feed
+## Live search and inventory feed
 
-- **Search the web panel:** builds pre-filled Google searches (per provider site) from your current filters. No API key needed.
 - **Inventory feed:** click "Inventory feed" and paste a CSV link (e.g. a Google Sheet published to the web). Listings reload from it each time the page opens, so the team updates the sheet and the site follows. Same columns as the CSV import below.
 - **Live search button:** asks Claude (with web search) to find real listings for your filters. Needs the small backend in `worker/` — see below.
 
