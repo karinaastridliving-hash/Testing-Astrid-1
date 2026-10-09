@@ -1,3 +1,2 @@
-// After deploying the worker (see README), paste its URL here, e.g.
-// window.LIVE_SEARCH_URL = "https://housing-live-search.<your-subdomain>.workers.dev";
-window.LIVE_SEARCH_URL = "";
+// URL of the live-search Cloudflare Worker (see README → Live search setup).
+window.LIVE_SEARCH_URL = "https://housing-live-search.karinaarzumayan.workers.dev";
