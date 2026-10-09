@@ -99,9 +99,11 @@ export default {
       const text = response.content.flatMap((b) => (b.type === "text" ? [b.text] : [])).join("\n");
       return json({ listings: extractJsonArray(text) });
     } catch (err) {
-      const status = err instanceof Anthropic.APIError ? err.status ?? 502 : 502;
-      const message = err instanceof Anthropic.RateLimitError ? "Rate limited, try again shortly." : "Search failed.";
-      return json({ error: message }, status === 429 ? 429 : 502);
+      console.error("anthropic call failed", err);
+      if (err instanceof Anthropic.RateLimitError) return json({ error: "Rate limited, try again shortly." }, 429);
+      // Anthropic error messages never contain the API key, so it is safe to surface them for debugging.
+      const detail = err instanceof Anthropic.APIError ? `${err.status ?? ""} ${err.message}`.trim() : String(err);
+      return json({ error: "Search failed.", detail: detail.slice(0, 400) }, 502);
     }
   },
 };

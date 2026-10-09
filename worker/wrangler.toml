@@ -6,3 +6,6 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 # Only this origin may call the worker (your GitHub Pages origin, no path).
 ALLOWED_ORIGIN = "https://karinaastridliving-hash.github.io"
+
+[observability]
+enabled = true

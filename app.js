@@ -291,7 +291,7 @@
       else {
         const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: key });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "HTTP " + res.status);
+        if (!res.ok) throw new Error((data.error || "HTTP " + res.status) + (data.detail ? " — " + data.detail : ""));
         listings = data.listings || [];
         const keep = Object.entries(cache).filter(([, v]) => Date.now() - v.t < 864e5).slice(-19);
         store.set("chs.liveCache", Object.fromEntries(keep.concat([[key, { t: Date.now(), listings }]])));
