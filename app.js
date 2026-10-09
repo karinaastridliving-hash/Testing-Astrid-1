@@ -86,8 +86,8 @@
   }
 
   function card(l, f) {
-    const total = f.nights ? `<div class="meta">≈ ${money((l.monthly / 30) * f.nights)} for ${f.nights} nights</div>` : "";
-    const tags = [l.live ? `<span class="tag warn">Found online – verify</span>` : "", l.utilities ? `<span class="tag ok">Utilities incl.</span>` : "", l.petFriendly ? `<span class="tag ok">Pets OK</span>` : ""]
+    const total = f.nights && l.monthly ? `<div class="meta">≈ ${money((l.monthly / 30) * f.nights)} for ${f.nights} nights</div>` : "";
+    const tags = [l.live ? `<span class="tag warn">Found online – verify</span>` : /^s\d+$/.test(l.id) ? `<span class="tag warn">Sample data</span>` : "", l.utilities ? `<span class="tag ok">Utilities incl.</span>` : "", l.petFriendly ? `<span class="tag ok">Pets OK</span>` : ""]
       .concat(l.amenities.map((a) => `<span class="tag">${esc(a)}</span>`)).join("");
     const on = shortlist.has(l.id);
     return `<article class="card">
