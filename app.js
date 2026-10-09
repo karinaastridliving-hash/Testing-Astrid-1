@@ -10,7 +10,8 @@
   let shortlist = new Set(store.get("chs.short", []));
   const AMENITIES = ["Furnished", "Gym", "Pool", "Parking", "Washer/Dryer", "Concierge", "Doorman", "Wi-Fi"];
 
-  const all = () => (store.get("chs.hideSample", false) ? userListings : userListings.concat(window.SAMPLE_LISTINGS));
+  let feedListings = [];
+  const all = () => feedListings.concat(userListings, store.get("chs.hideSample", false) ? [] : window.SAMPLE_LISTINGS);
 
   const money = (n) => "$" + Math.round(n).toLocaleString();
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -77,7 +78,21 @@
       ? rows.map((l) => card(l, f)).join("")
       : `<p class="empty">No listings match. Try loosening your filters.</p>`;
     $("#short-count").textContent = shortlist.size;
+    renderWebLinks(f);
     $(".notice").hidden = store.get("chs.hideSample", false);
+  }
+
+  const WEB_SOURCES = [
+    ["Furnished Finder", "furnishedfinder.com"], ["Landing", "hellolanding.com"], ["Oakwood", "oakwood.com"],
+    ["Sentral", "sentral.com"], ["Corporate Housing by Owner", "corporatehousingbyowner.com"],
+    ["Airbnb (monthly)", "airbnb.com"], ["Apartments.com", "apartments.com"], ["Zillow", "zillow.com"],
+  ];
+  function renderWebLinks(f) {
+    const parts = [f.beds === 0 ? "studio" : f.beds ? f.beds + " bedroom" : "", "furnished", f.city, f.pets ? "pet friendly" : "",
+      f.budget < 10000 ? "under $" + f.budget + " month" : "", f.nights >= 28 ? "monthly rental" : "corporate housing"].filter(Boolean).join(" ");
+    const g = (q) => "https://www.google.com/search?q=" + encodeURIComponent(q);
+    $("#web-links").innerHTML = [`<a class="btn primary" target="_blank" rel="noopener" href="${g(parts)}">Google: all sites</a>`]
+      .concat(WEB_SOURCES.map(([n, s]) => `<a class="btn" target="_blank" rel="noopener" href="${g("site:" + s + " " + parts)}">${n}</a>`)).join("");
   }
 
   function card(l, f) {
@@ -234,6 +249,32 @@
     e.target.value = "";
   });
 
+  async function loadFeed(url, announce) {
+    try {
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const rows = parseCSV(await res.text());
+      const head = rows.shift().map((h) => h.trim());
+      feedListings = rows.map((r, i) => {
+        const l = normalize(Object.fromEntries(head.map((h, j) => [h, r[j] ?? ""])));
+        if (l) l.id = "f" + i;
+        return l;
+      }).filter(Boolean);
+      buildFilterOptions(); render();
+      if (announce) toast(`Feed loaded: ${feedListings.length} listings`);
+    } catch (err) {
+      toast("Could not load feed: " + err.message);
+    }
+  }
+  $("#btn-feed").addEventListener("click", () => {
+    const url = window.prompt("Paste the CSV link of your inventory (Google Sheets: File → Share → Publish to web → CSV). Leave empty to disconnect.", store.get("chs.feed", ""));
+    if (url === null) return;
+    store.set("chs.feed", url.trim());
+    if (url.trim()) loadFeed(url.trim(), true); else { feedListings = []; buildFilterOptions(); render(); }
+  });
+
   buildFilterOptions();
   render();
+  const feedUrl = store.get("chs.feed", "");
+  if (feedUrl) loadFeed(feedUrl, false);
 })();

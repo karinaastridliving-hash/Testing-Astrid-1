@@ -11,6 +11,7 @@
     <div class="wrap bar">
       <h1>Corporate Housing Sourcer</h1>
       <nav>
+        <button id="btn-feed" class="btn" title="Load inventory from a published Google Sheet / CSV link">Inventory feed</button>
         <button id="btn-add" class="btn">+ Add listing</button>
         <label class="btn">Import CSV<input id="file-import" type="file" accept=".csv" hidden></label>
         <button id="btn-shortlist" class="btn primary">Shortlist <span id="short-count" class="badge">0</span></button>
@@ -74,6 +75,11 @@
           </select>
         </label>
       </div>
+      <details id="web" class="web" open>
+        <summary>Search the web with these filters</summary>
+        <p class="meta">Opens searches on provider sites for your current filters (results open in a new tab).</p>
+        <div id="web-links" class="tags"></div>
+      </details>
       <div id="cards" class="cards"></div>
     </section>
   </main>

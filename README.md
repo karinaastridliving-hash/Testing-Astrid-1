@@ -19,6 +19,12 @@ python3 -m http.server 8000   # then open http://localhost:8000
 - One-click "Copy inquiry email" to send to providers
 - Add listings by hand, or import a CSV
 
+## Web search and inventory feed
+
+- **Search the web panel:** builds pre-filled Google searches (per provider site) from your current filters. No API key needed.
+- **Inventory feed:** click "Inventory feed" and paste a CSV link (e.g. a Google Sheet published to the web). Listings reload from it each time the page opens, so the team updates the sheet and the site follows. Same columns as the CSV import below.
+- True automatic crawling of the internet needs a paid search/listings API plus a small backend; not included.
+
 ## Data
 
 `data.js` holds **fictional sample listings**. Add real ones with the "Add listing" button or "Import CSV".

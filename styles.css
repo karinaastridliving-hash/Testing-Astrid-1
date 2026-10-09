@@ -60,3 +60,6 @@ td.best { color: var(--ok); font-weight: 600; }
 #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 8px 14px; border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity .2s; }
 #toast.show { opacity: 1; }
 @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
+.web { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; margin-bottom: 16px; }
+.web summary { cursor: pointer; font-weight: 600; }
+.web a.btn { text-decoration: none; font-size: 13px; padding: 5px 10px; }
