@@ -23,7 +23,23 @@ python3 -m http.server 8000   # then open http://localhost:8000
 
 - **Search the web panel:** builds pre-filled Google searches (per provider site) from your current filters. No API key needed.
 - **Inventory feed:** click "Inventory feed" and paste a CSV link (e.g. a Google Sheet published to the web). Listings reload from it each time the page opens, so the team updates the sheet and the site follows. Same columns as the CSV import below.
-- True automatic crawling of the internet needs a paid search/listings API plus a small backend; not included.
+- **Live search button:** asks Claude (with web search) to find real listings for your filters. Needs the small backend in `worker/` — see below.
+
+## Live search setup (Cloudflare Worker + Anthropic API key)
+
+1. Create an API key at https://console.anthropic.com and **set a monthly spend limit** there. Each live search runs several web searches and costs real money (billed per token plus per web search; check current pricing).
+2. Install Node.js, then in a terminal:
+   ```
+   cd worker
+   npm install
+   npx wrangler login                      # free Cloudflare account
+   npx wrangler secret put ANTHROPIC_API_KEY   # paste the key when asked
+   npx wrangler deploy
+   ```
+3. Wrangler prints a URL like `https://housing-live-search.<you>.workers.dev`. Paste it into `config.js` as `window.LIVE_SEARCH_URL`, commit, push.
+4. If your site isn't at `https://karinaastridliving-hash.github.io`, edit `ALLOWED_ORIGIN` in `worker/wrangler.toml` and redeploy.
+
+Notes: results are AI-gathered from public web pages and **must be verified** on the source page (price, availability, terms). The worker only accepts requests from `ALLOWED_ORIGIN`, but that is not strong protection: keep the spend limit on.
 
 ## Data
 

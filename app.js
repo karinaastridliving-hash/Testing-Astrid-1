@@ -11,7 +11,8 @@
   const AMENITIES = ["Furnished", "Gym", "Pool", "Parking", "Washer/Dryer", "Concierge", "Doorman", "Wi-Fi"];
 
   let feedListings = [];
-  const all = () => feedListings.concat(userListings, store.get("chs.hideSample", false) ? [] : window.SAMPLE_LISTINGS);
+  let liveListings = [];
+  const all = () => liveListings.concat(feedListings, userListings, store.get("chs.hideSample", false) ? [] : window.SAMPLE_LISTINGS);
 
   const money = (n) => "$" + Math.round(n).toLocaleString();
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -62,7 +63,7 @@
   }
 
   const sorters = {
-    "price-asc": (a, b) => a.monthly - b.monthly,
+    "price-asc": (a, b) => (a.monthly || Infinity) - (b.monthly || Infinity),
     "price-desc": (a, b) => b.monthly - a.monthly,
     "size-desc": (a, b) => (b.sqft || 0) - (a.sqft || 0),
     "ppsf-asc": (a, b) => (a.sqft ? a.monthly / a.sqft : Infinity) - (b.sqft ? b.monthly / b.sqft : Infinity),
@@ -97,7 +98,7 @@
 
   function card(l, f) {
     const total = f.nights ? `<div class="meta">≈ ${money((l.monthly / 30) * f.nights)} for ${f.nights} nights</div>` : "";
-    const tags = [l.utilities ? `<span class="tag ok">Utilities incl.</span>` : "", l.petFriendly ? `<span class="tag ok">Pets OK</span>` : ""]
+    const tags = [l.live ? `<span class="tag warn">Found online – verify</span>` : "", l.utilities ? `<span class="tag ok">Utilities incl.</span>` : "", l.petFriendly ? `<span class="tag ok">Pets OK</span>` : ""]
       .concat(l.amenities.map((a) => `<span class="tag">${esc(a)}</span>`)).join("");
     const on = shortlist.has(l.id);
     return `<article class="card">
@@ -105,14 +106,14 @@
       <div class="body">
         <h3>${esc(l.name)}</h3>
         <div class="meta">${bedLabel(l.beds)} · ${l.baths} BA${l.sqft ? " · " + l.sqft + " sq ft" : ""} · sleeps ${l.sleeps}</div>
-        <div class="price">${money(l.monthly)} <small>/ month · ${money(l.monthly / 30)}/night</small></div>
+        <div class="price">${l.monthly ? money(l.monthly) + ` <small>/ month · ${money(l.monthly / 30)}/night</small>` : "<small>Price on request</small>"}</div>
         ${total}
         <div class="meta">${esc(l.provider || "Unknown provider")} · min ${l.minNights} nights</div>
         <div class="tags">${tags}</div>
         ${l.notes ? `<div class="meta">${esc(l.notes)}</div>` : ""}
       </div>
       <div class="foot">
-        <span class="meta">${l.sqft ? "$" + (l.monthly / l.sqft).toFixed(2) + "/sq ft" : ""}</span>
+        <span class="meta">${l.url ? `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">View listing ↗</a>` : l.sqft ? "$" + (l.monthly / l.sqft).toFixed(2) + "/sq ft" : ""}</span>
         <button class="btn ${on ? "primary" : ""}" data-short="${esc(l.id)}">${on ? "✓ Shortlisted" : "+ Shortlist"}</button>
       </div></article>`;
   }
@@ -174,7 +175,7 @@
       id: "u" + Date.now() + Math.random().toString(36).slice(2, 7),
       name: String(o.name).trim(), provider: String(o.provider || "").trim(), city: String(o.city).trim(), neighborhood: String(o.neighborhood || "").trim(),
       beds: +o.beds || 0, baths: +o.baths || 1, sqft: +o.sqft || 0, sleeps: +o.sleeps || 2, monthly, minNights: +o.minNights || 30,
-      utilities: bool(o.utilities), petFriendly: bool(o.petFriendly), amenities: amen, notes: String(o.notes || "").trim(), imported: true,
+      utilities: bool(o.utilities), petFriendly: bool(o.petFriendly), amenities: amen, notes: String(o.notes || "").trim(), imported: true, url: /^https?:\/\//.test(o.url || "") ? o.url : "",
     };
   }
 
@@ -272,6 +273,33 @@
     store.set("chs.feed", url.trim());
     if (url.trim()) loadFeed(url.trim(), true); else { feedListings = []; buildFilterOptions(); render(); }
   });
+
+  async function liveSearch() {
+    const url = window.LIVE_SEARCH_URL;
+    const status = $("#live-status");
+    if (!url) { status.textContent = "Live search isn't connected yet. See README → Live search."; return; }
+    const f = filters();
+    const btn = $("#btn-live");
+    btn.disabled = true; status.textContent = "Searching the web… this can take up to a minute.";
+    try {
+      const res = await fetch(url, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...f, movein: $("#f-movein").value }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "HTTP " + res.status);
+      liveListings = (data.listings || []).map((o, i) => {
+        const l = normalize({ ...o, monthly: o.monthly ?? 0, amenities: o.amenities || [] });
+        if (l) { l.id = "w" + i; l.live = true; l.imported = false; }
+        return l;
+      }).filter(Boolean);
+      status.textContent = `Found ${liveListings.length} online listing(s). Always verify price and availability on the source page.`;
+      buildFilterOptions(); render();
+    } catch (err) {
+      status.textContent = "Live search failed: " + err.message;
+    } finally { btn.disabled = false; }
+  }
+  $("#btn-live").addEventListener("click", liveSearch);
 
   buildFilterOptions();
   render();

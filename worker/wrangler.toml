@@ -1,0 +1,8 @@
+name = "housing-live-search"
+main = "src/index.ts"
+compatibility_date = "2025-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+# Only this origin may call the worker (your GitHub Pages origin, no path).
+ALLOWED_ORIGIN = "https://karinaastridliving-hash.github.io"
