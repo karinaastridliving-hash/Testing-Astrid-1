@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Corporate Housing Sourcing Tool</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap bar">
+      <h1>Corporate Housing Sourcer</h1>
+      <nav>
+        <button id="btn-add" class="btn">+ Add listing</button>
+        <label class="btn">Import CSV<input id="file-import" type="file" accept=".csv" hidden></label>
+        <button id="btn-shortlist" class="btn primary">Shortlist <span id="short-count" class="badge">0</span></button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap layout">
+    <aside class="filters" aria-label="Filters">
+      <div class="notice">Showing <strong>sample data</strong>. Add or import real listings to replace it.</div>
+
+      <label>Search
+        <input id="f-q" type="search" placeholder="Name, neighborhood, provider…">
+      </label>
+      <label>City
+        <select id="f-city"><option value="">Any city</option></select>
+      </label>
+      <div class="row2">
+        <label>Move-in
+          <input id="f-movein" type="date">
+        </label>
+        <label>Nights
+          <input id="f-nights" type="number" min="1" placeholder="e.g. 90">
+        </label>
+      </div>
+      <div class="row2">
+        <label>Min bedrooms
+          <select id="f-beds">
+            <option value="">Any</option><option value="0">Studio+</option>
+            <option value="1">1+</option><option value="2">2+</option><option value="3">3+</option>
+          </select>
+        </label>
+        <label>Guests
+          <input id="f-guests" type="number" min="1" placeholder="1">
+        </label>
+      </div>
+      <label>Max monthly budget: <output id="o-budget">Any</output>
+        <input id="f-budget" type="range" min="1000" max="10000" step="100" value="10000">
+      </label>
+      <label>Provider
+        <select id="f-provider"><option value="">Any provider</option></select>
+      </label>
+      <fieldset>
+        <legend>Must have</legend>
+        <div id="f-amenities" class="checks"></div>
+        <label class="check"><input id="f-pets" type="checkbox"> Pet friendly</label>
+        <label class="check"><input id="f-util" type="checkbox"> Utilities included</label>
+      </fieldset>
+      <button id="btn-reset" class="btn">Reset filters</button>
+    </aside>
+
+    <section class="results">
+      <div class="toolbar">
+        <p id="count" aria-live="polite"></p>
+        <label class="inline">Sort
+          <select id="f-sort">
+            <option value="price-asc">Price: low → high</option>
+            <option value="price-desc">Price: high → low</option>
+            <option value="size-desc">Size: largest</option>
+            <option value="ppsf-asc">Cheapest per sq ft</option>
+          </select>
+        </label>
+      </div>
+      <div id="cards" class="cards"></div>
+    </section>
+  </main>
+
+  <!-- Shortlist / compare drawer -->
+  <dialog id="dlg-short">
+    <form method="dialog" class="dlg-head"><h2>Shortlist</h2><button class="btn">Close</button></form>
+    <div id="short-body"></div>
+    <div class="dlg-actions">
+      <button id="btn-compare-csv" class="btn">Export CSV</button>
+      <button id="btn-copy-rfp" class="btn primary">Copy inquiry email</button>
+      <button id="btn-clear-short" class="btn danger">Clear</button>
+    </div>
+  </dialog>
+
+  <!-- Add listing -->
+  <dialog id="dlg-add">
+    <form id="form-add" class="addform">
+      <h2>Add listing</h2>
+      <label>Name <input name="name" required></label>
+      <label>Provider <input name="provider" placeholder="Direct, Oakwood, …"></label>
+      <div class="row2">
+        <label>City <input name="city" required></label>
+        <label>Neighborhood <input name="neighborhood"></label>
+      </div>
+      <div class="row2">
+        <label>Bedrooms (0 = studio) <input name="beds" type="number" min="0" value="1" required></label>
+        <label>Baths <input name="baths" type="number" min="1" step="0.5" value="1"></label>
+      </div>
+      <div class="row2">
+        <label>Sq ft <input name="sqft" type="number" min="0"></label>
+        <label>Sleeps <input name="sleeps" type="number" min="1" value="2"></label>
+      </div>
+      <div class="row2">
+        <label>Monthly rate (USD) <input name="monthly" type="number" min="0" required></label>
+        <label>Min nights <input name="minNights" type="number" min="1" value="30"></label>
+      </div>
+      <label>Amenities (comma-separated) <input name="amenities" placeholder="Furnished, Gym, Parking"></label>
+      <label class="check"><input name="utilities" type="checkbox"> Utilities included</label>
+      <label class="check"><input name="petFriendly" type="checkbox"> Pet friendly</label>
+      <label>Notes <textarea name="notes" rows="2"></textarea></label>
+      <div class="dlg-actions">
+        <button type="button" id="btn-add-cancel" class="btn">Cancel</button>
+        <button class="btn primary">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
