@@ -83,11 +83,11 @@ export default {
       // Web search runs server-side; a long search may pause the turn, so continue a few times.
       for (let i = 0; i < 4; i++) {
         response = await client.messages.create({
-          model: "claude-opus-5-5",
+          model: "claude-haiku-5-5",
           max_tokens: 12000,
           system: SYSTEM,
           output_config: { effort: "medium" },
-          tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 6 }],
+          tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 6 }],
           messages,
         });
         if (response.stop_reason !== "pause_turn") break;
