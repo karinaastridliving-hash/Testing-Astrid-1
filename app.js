@@ -279,16 +279,24 @@
     const status = $("#live-status");
     if (!url) { status.textContent = "Live search isn't connected yet. See README → Live search."; return; }
     const f = filters();
+    const body = { city: f.city, beds: f.beds, guests: f.guests, budget: f.budget, nights: f.nights, movein: $("#f-movein").value, pets: f.pets, utilities: f.util, amenities: f.amenities, q: f.q };
+    const key = JSON.stringify(body);
+    const cache = store.get("chs.liveCache", {});
+    const hit = cache[key];
     const btn = $("#btn-live");
-    btn.disabled = true; status.textContent = "Searching the web… this can take up to a minute.";
+    btn.disabled = true; status.textContent = hit && Date.now() - hit.t < 864e5 ? "Loading saved results…" : "Searching the web… this can take up to a minute.";
     try {
-      const res = await fetch(url, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...f, movein: $("#f-movein").value }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "HTTP " + res.status);
-      liveListings = (data.listings || []).map((o, i) => {
+      let listings;
+      if (hit && Date.now() - hit.t < 864e5) listings = hit.listings; // same search within 24h: no API cost
+      else {
+        const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: key });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "HTTP " + res.status);
+        listings = data.listings || [];
+        const keep = Object.entries(cache).filter(([, v]) => Date.now() - v.t < 864e5).slice(-19);
+        store.set("chs.liveCache", Object.fromEntries(keep.concat([[key, { t: Date.now(), listings }]])));
+      }
+      liveListings = listings.map((o, i) => {
         const l = normalize({ ...o, monthly: o.monthly ?? 0, amenities: o.amenities || [] });
         if (l) { l.id = "w" + i; l.live = true; l.imported = false; }
         return l;

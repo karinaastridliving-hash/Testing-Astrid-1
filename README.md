@@ -39,6 +39,8 @@ python3 -m http.server 8000   # then open http://localhost:8000
 3. Wrangler prints a URL like `https://housing-live-search.<you>.workers.dev`. Paste it into `config.js` as `window.LIVE_SEARCH_URL`, commit, push.
 4. If your site isn't at `https://karinaastridliving-hash.github.io`, edit `ALLOWED_ORIGIN` in `worker/wrangler.toml` and redeploy.
 
+Cost controls: the worker uses Claude Haiku 5.5 with low effort, at most 4 web searches and 5,000 output tokens per request, and the site caches identical searches in the browser for 24 hours (repeat searches are free). Tune `model`, `max_uses` and `effort` in `worker/src/index.ts`.
+
 Notes: results are AI-gathered from public web pages and **must be verified** on the source page (price, availability, terms). The worker only accepts requests from `ALLOWED_ORIGIN`, but that is not strong protection: keep the spend limit on.
 
 ## Data

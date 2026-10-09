@@ -16,7 +16,7 @@ Rules:
 - Only report listings you actually found on a web page during this search. Never invent listings, prices or URLs.
 - "url" must be the direct page of the listing (or the provider's page for that property).
 - If a field is not stated on the page, use null. Do not guess.
-- Prefer stays of 30+ nights. Return at most 10 listings.
+- Prefer stays of 30+ nights. Return at most 8 listings. Be economical: run few, well-targeted searches (prefer provider sites such as Furnished Finder, Landing, Oakwood, Sentral, Corporate Housing by Owner), read the snippets, and stop as soon as you have enough matching listings. Keep "notes" under 15 words.
 Respond with ONLY a JSON array (no prose, no code fences). Each item:
 {"name":string,"provider":string,"city":string,"neighborhood":string|null,"beds":number|null,"baths":number|null,"sqft":number|null,"sleeps":number|null,"monthly":number|null,"minNights":number|null,"utilities":boolean|null,"petFriendly":boolean|null,"amenities":string[],"notes":string,"url":string}
 "monthly" is the USD price per 30 days.`;
@@ -81,13 +81,13 @@ export default {
     try {
       let response: Anthropic.Message | undefined;
       // Web search runs server-side; a long search may pause the turn, so continue a few times.
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 2; i++) {
         response = await client.messages.create({
-          model: "claude-sonnet-5-5",
-          max_tokens: 12000,
+          model: "claude-haiku-5-5",
+          max_tokens: 5000,
           system: SYSTEM,
-          output_config: { effort: "medium" },
-          tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 6 }],
+          output_config: { effort: "low" },
+          tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 4 }],
           messages,
         });
         if (response.stop_reason !== "pause_turn") break;
