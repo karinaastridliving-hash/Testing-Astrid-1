@@ -50,6 +50,9 @@
   }
 
   function matches(l, f) {
+    // Live results were already searched with these filters; listings rarely state every amenity,
+    // so only enforce the budget (when a price is known) instead of hiding them.
+    if (l.live) return !(f.budget < 10000 && l.monthly && l.monthly > f.budget);
     if (f.q && !`${l.name} ${l.neighborhood} ${l.provider} ${l.city}`.toLowerCase().includes(f.q)) return false;
     if (f.city && l.city !== f.city) return false;
     if (f.nights && l.minNights > f.nights) return false;
