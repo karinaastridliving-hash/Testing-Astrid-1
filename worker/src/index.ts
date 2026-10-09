@@ -8,7 +8,29 @@ interface Env {
 interface Filters {
   city?: string; beds?: number | null; guests?: number; budget?: number;
   nights?: number; movein?: string; pets?: boolean; utilities?: boolean;
-  amenities?: string[]; q?: string;
+  amenities?: string[]; q?: string; debug?: boolean;
+}
+
+// Diagnostics: raw HTTP calls so the real status/body from Anthropic is visible.
+async function rawCall(env: Env, body: unknown) {
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return { status: r.status, body: (await r.text()).slice(0, 400) };
+}
+
+async function diagnose(env: Env) {
+  const key = env.ANTHROPIC_API_KEY || "";
+  const msgs = [{ role: "user", content: "Reply with the single word: ok" }];
+  const tool = { type: "web_search_20250305", name: "web_search", max_uses: 1 };
+  return {
+    keyInfo: { present: key.length > 0, length: key.length, prefix: key.slice(0, 10) },
+    basic: await rawCall(env, { model: "claude-haiku-5-5", max_tokens: 20, messages: msgs }),
+    withTool: await rawCall(env, { model: "claude-haiku-5-5", max_tokens: 50, tools: [tool], messages: msgs }),
+    withEffort: await rawCall(env, { model: "claude-haiku-5-5", max_tokens: 50, output_config: { effort: "low" }, tools: [tool], messages: msgs }),
+  };
 }
 
 const SYSTEM = `You are a corporate-housing sourcing assistant. Use web search to find REAL, currently listed furnished / corporate / mid-term apartments that match the user's requirements.
@@ -72,6 +94,8 @@ export default {
     } catch {
       return json({ error: "Invalid JSON body" }, 400);
     }
+
+    if (filters.debug) return json(await diagnose(env));
 
     const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
     const messages: Anthropic.MessageParam[] = [

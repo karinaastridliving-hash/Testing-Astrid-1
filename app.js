@@ -294,6 +294,20 @@
     } finally { btn.disabled = false; }
   }
   $("#btn-live").addEventListener("click", liveSearch);
+  $("#btn-test").addEventListener("click", async () => {
+    const status = $("#live-status");
+    if (!window.LIVE_SEARCH_URL) { status.textContent = "Live search isn't connected yet."; return; }
+    status.textContent = "Testing…";
+    try {
+      const res = await fetch(window.LIVE_SEARCH_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ debug: true }) });
+      const d = await res.json();
+      status.innerHTML = "";
+      const pre = document.createElement("pre");
+      pre.style.cssText = "white-space:pre-wrap;font-size:12px;margin:8px 0 0;max-width:100%";
+      pre.textContent = JSON.stringify(d, null, 2);
+      status.appendChild(pre);
+    } catch (err) { status.textContent = "Test failed: " + err.message; }
+  });
 
   buildFilterOptions();
   render();
