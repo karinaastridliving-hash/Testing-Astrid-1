@@ -346,6 +346,18 @@
 
   buildFilterOptions();
   render();
+  // light / dark toggle (defaults to the computer's setting, remembers the choice)
+  const root = document.documentElement;
+  const isDark = () => (root.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")) === "dark";
+  const syncThemeBtn = () => { $("#btn-theme").textContent = isDark() ? "☀️ Light mode" : "🌙 Dark mode"; };
+  $("#btn-theme").addEventListener("click", () => {
+    const next = isDark() ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    store.set("chs.theme", next);
+    syncThemeBtn();
+  });
+  syncThemeBtn();
+
   loadInventory();
   const feedUrl = store.get("chs.feed", "");
   if (feedUrl) loadFeed(feedUrl, false);

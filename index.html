@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Astrid Living · Sourcing Studio</title>
   <link rel="stylesheet" href="styles.css">
+  <script>try { var t = JSON.parse(localStorage.getItem("chs.theme")); if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t); } catch (e) {}</script>
 </head>
 <body>
   <header class="topbar">
@@ -13,7 +14,10 @@
         <img id="logo" src="logo.png" alt="Astrid Living" onerror="this.remove()">
         <span class="studio">Sourcing Studio</span>
       </div>
-      <p class="tagline">Find a place. Create an experience.</p>
+      <div class="bar-right">
+        <p class="tagline">Find a place. Create an experience.</p>
+        <button id="btn-theme" class="btn theme-btn" type="button" aria-label="Switch between light and dark mode">🌙 Dark mode</button>
+      </div>
     </div>
   </header>
 
