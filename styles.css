@@ -140,3 +140,6 @@ td.best { color: var(--ok); font-weight: 600; }
 .nb-n { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--accent-text); display: grid; place-items: center; font-size: 12px; }
 .nb-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 @media (max-width: 900px) { .nb-form { grid-template-columns: 1fr; } .nb-body { grid-template-columns: 1fr; } .nb-map { height: 340px; } }
+.nb-pin { display: grid !important; place-items: center; border-radius: 50%; background: var(--accent, #34506c); color: #fff; font: 600 12px system-ui, sans-serif; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.35); }
+.nb-pin.nb-home { background: #34506c; border: 3px solid #c1a463; font-size: 15px; }
+.nb-map { position: relative; z-index: 0; }

@@ -42,16 +42,19 @@ Cost controls: the worker uses Claude Haiku 5.5 with low effort, at most 4 web s
 
 Notes: results are AI-gathered from public web pages and **must be verified** on the source page (price, availability, terms). The worker only accepts requests from `ALLOWED_ORIGIN`, but that is not strong protection: keep the spend limit on.
 
-## Nearby search (Google Maps key)
+## Nearby search (TomTom or Google)
 
-"Search near a destination" geocodes the destination, searches Google Places for *furnished apartments, furnished rentals, furnished housing, serviced apartments, corporate apartments for rent* and *aparthotels* around it, keeps only results within the chosen drive time (Google Routes, typical drive time without live traffic) and shows them on a map and in a list. It needs a Google Maps API key:
+"Search near a destination" geocodes the destination, searches for *furnished apartments, furnished rentals, furnished housing, serviced apartments, corporate apartments for rent* and *aparthotels* around it, keeps only results within the chosen drive time (typical drive time, no live traffic) and shows them on a map and in a list. Choose the provider in `config.js` with `window.MAP_PROVIDER`.
 
-1. Go to https://console.cloud.google.com, create a project and link a **billing account** (Google bills per request; set a **budget alert** and daily **quota caps** under APIs & Services → Quotas).
-2. APIs & Services → Library: enable **Maps JavaScript API**, **Places API (New)** and **Routes API**.
-3. APIs & Services → Credentials → Create credentials → **API key**. Edit the key: *Application restrictions* → Websites → add `https://karinaastridliving-hash.github.io/*`; *API restrictions* → restrict to the three APIs above.
-4. Put the key in `config.js` as `window.GOOGLE_MAPS_KEY`, commit and push.
+**TomTom (default; free plan, no card needed to start as far as we know)**
+1. Sign up at https://developer.tomtom.com and open the Dashboard → API keys.
+2. Make sure the key allows the **Search**, **Routing (Matrix Routing)** and **Map Display** APIs. If the dashboard offers an allowed-websites setting, add `https://karinaastridliving-hash.github.io`.
+3. Put the key in `config.js` as `window.TOMTOM_KEY`, commit and push.
 
-A browser key is visible to anyone who views the site, which is why step 3 (website + API restriction) matters. Without a key the panel shows links that open the same searches in Google Maps. The same search repeated within 24 hours is served from the browser cache and costs nothing. Only the cheaper Places fields are requested (no ratings or websites).
+**Google (better coverage of serviced/corporate apartments, needs a billing account)**
+Set `window.MAP_PROVIDER = "google"` and `window.GOOGLE_MAPS_KEY`. In Google Cloud enable *Maps JavaScript API*, *Places API (New)* and *Routes API*, create an API key, restrict it to `https://karinaastridliving-hash.github.io/*` and to those three APIs, and set a budget alert and quota caps.
+
+A browser key is visible to anyone who views the site, so restrict it where the provider allows. Without a key the panel shows links that open the same searches in Google Maps. The same search repeated within 24 hours is served from the browser cache and costs nothing. The map uses Leaflet (bundled in `vendor/leaflet`, BSD-2 licence).
 
 ## Astrid inventory (`inventory.csv`)
 
