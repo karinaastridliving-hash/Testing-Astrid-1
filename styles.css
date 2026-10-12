@@ -143,3 +143,8 @@ td.best { color: var(--ok); font-weight: 600; }
 .nb-pin { display: grid !important; place-items: center; border-radius: 50%; background: var(--accent, #34506c); color: #fff; font: 600 12px system-ui, sans-serif; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.35); }
 .nb-pin.nb-home { background: #34506c; border: 3px solid #c1a463; font-size: 15px; }
 .nb-map { position: relative; z-index: 0; }
+.card .thumb { width: 100%; height: 170px; object-fit: cover; display: block; background: var(--field); }
+.card .desc { font-size: 13px; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.tag.gold { color: var(--gold-ink); border-color: var(--gold); background: color-mix(in srgb, var(--gold) 16%, transparent); }
+.nb-pin.nb-astrid { background: #c1a463; color: #1a1f26; }
+.nb-n.gold { background: #c1a463; color: #1a1f26; }

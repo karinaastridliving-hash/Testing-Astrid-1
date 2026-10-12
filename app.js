@@ -8,7 +8,7 @@
 
   let userListings = store.get("chs.user", []);
   let shortlist = new Set(store.get("chs.short", []));
-  const AMENITIES = ["Furnished", "Gym", "Pool", "Parking", "Washer/Dryer", "Concierge", "Doorman", "Wi-Fi"];
+  const AMENITIES = ["Furnished", "Gym", "Pool", "Parking", "Washer/Dryer", "Laundry", "Concierge", "Elevator", "Air Conditioning", "Wi-Fi", "Kitchen", "Balcony/Terrace", "Business Center", "EV Charger"];
 
   let feedListings = [];
   let liveListings = [];
@@ -104,9 +104,10 @@
   function card(l, f) {
     const total = f.nights && l.monthly ? `<div class="meta">≈ ${money((l.monthly / 30) * f.nights)} for ${f.nights} nights</div>` : "";
     const tags = [l.hotel ? `<span class="tag ok">Astrid inventory</span>` : "", l.live ? `<span class="tag warn">Found online – verify</span>` : /^s\d+$/.test(l.id) ? `<span class="tag warn">Sample data</span>` : "", l.utilities ? `<span class="tag ok">Utilities incl.</span>` : "", l.petFriendly ? `<span class="tag ok">Pets OK</span>` : ""]
-      .concat(l.amenities.map((a) => `<span class="tag">${esc(a)}</span>`)).join("");
+      .concat(l.amenities.slice(0, 8).map((a) => `<span class="tag">${esc(a)}</span>`), l.amenities.length > 8 ? [`<span class="tag" title="${esc(l.amenities.slice(8).join(", "))}">+${l.amenities.length - 8} more</span>`] : []).join("");
     const on = shortlist.has(l.id);
     return `<article class="card${l.live ? " live" : ""}">
+      ${l.image ? `<img class="thumb" loading="lazy" src="${esc(l.image)}" alt="${esc(l.name)}" onerror="this.remove()">` : ""}
       <div class="hero">${esc(l.city)}${l.neighborhood ? " · " + esc(l.neighborhood) : ""}</div>
       <div class="body">
         <h3>${esc(l.name)}</h3>
@@ -115,10 +116,11 @@
         ${total}
         <div class="meta">${esc(l.provider || "Unknown provider")}${l.minNights ? " · min " + l.minNights + " nights" : ""}</div>
         <div class="tags">${tags}</div>
+        ${l.description ? `<div class="desc">${esc(l.description)}</div>` : ""}
         ${l.notes ? `<div class="meta">${esc(l.notes)}</div>` : ""}
       </div>
       <div class="foot">
-        <span class="meta">${l.url ? `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">View listing ↗</a>` : l.sqft ? "$" + (l.monthly / l.sqft).toFixed(2) + "/sq ft" : ""}</span>
+        <span class="meta">${l.url ? `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${l.hotel ? "View on Astrid" : "View listing"} ↗</a>` : l.sqft ? "$" + (l.monthly / l.sqft).toFixed(2) + "/sq ft" : ""}</span>
         <button class="btn ${on ? "primary" : ""}" data-short="${esc(l.id)}">${on ? "✓ Shortlisted" : "+ Shortlist"}</button>
       </div></article>`;
   }
@@ -182,6 +184,8 @@
       name: String(o.name).trim(), provider: String(o.provider || "").trim(), city: String(o.city).trim(), neighborhood: String(o.neighborhood || "").trim(),
       beds: +o.beds || 0, baths: +o.baths || 0, sqft: +o.sqft || 0, sleeps: +o.sleeps || 0, monthly, minNights: +o.minNights || 0,
       utilities: bool(o.utilities), petFriendly: bool(o.petFriendly), amenities: amen, notes: String(o.notes || "").trim(), imported: true, url: /^https?:\/\//.test(o.url || "") ? o.url : "",
+      lat: o.lat === "" || o.lat == null || isNaN(+o.lat) ? null : +o.lat, lng: o.lng === "" || o.lng == null || isNaN(+o.lng) ? null : +o.lng,
+      image: /^https:\/\//.test(o.image || "") ? o.image : "", description: String(o.description || "").trim(),
     };
   }
 
@@ -333,6 +337,7 @@
         if (l) { l.id = "h" + i; l.hotel = true; l.imported = false; }
         return l;
       }).filter(Boolean);
+      window.ASTRID_INVENTORY = hotelListings;
       buildFilterOptions(); render();
     } catch { /* no inventory.csv yet */ }
   }

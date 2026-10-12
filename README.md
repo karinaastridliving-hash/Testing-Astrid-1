@@ -58,7 +58,14 @@ A browser key is visible to anyone who views the site, so restrict it where the 
 
 ## Astrid inventory (`inventory.csv`)
 
-`inventory.csv` is loaded automatically when the site opens and is shown as "Astrid inventory" (the sample data is then hidden). It holds the 839 properties from the Hosteeva "Property Search" export: name, city, bedrooms, bathrooms, property ID (in the notes) and the FAQ link where one exists. The export has no rates, minimum stay, capacity, size or amenities, so those show as unknown ("Price on request", "—") instead of guessed values. To update the inventory, replace `inventory.csv` using the same columns as below.
+`inventory.csv` is loaded automatically when the site opens and is shown as "Astrid inventory" (the sample data is then hidden). It was built on 2026-10-12 from two sources:
+
+- the Hosteeva "Property Search" export (839 properties: name, city, bedrooms, bathrooms, FAQ link), and
+- Astrid's own public property pages (540 pages listed in `sitemap.xml`; same property IDs): map coordinates, photo, description, sleeps, amenities, pet policy, check-in/out and minimum age.
+
+Properties are joined by property ID. 128 properties that are on the website but not in the export were added. Rules used: every Astrid property is tagged *Furnished* (Astrid's site describes its business as furnished apartments); amenities are normalised to the filter names and the website's own labels are kept; "sleeps 1" on the website is treated as unknown (it looks like a default); coordinates of 0,0 or far outside the property's city are dropped (16 properties); photos that are the website's grey placeholder are skipped. Neither source has rates, minimum stay, size or utilities, so those show as unknown ("Price on request", "—") instead of guessed values.
+
+Properties with coordinates also appear (grouped by building) in "Search near a destination". To update the inventory, replace `inventory.csv` using the same columns as below plus `lat,lng,image,description`.
 
 ## Data
 
@@ -67,7 +74,7 @@ User-added data is stored in your browser's localStorage (per device).
 
 CSV columns (header row required, extra columns ignored):
 
-`name,provider,city,neighborhood,beds,baths,sqft,sleeps,monthly,minNights,utilities,petFriendly,amenities,notes`
+`name,provider,city,neighborhood,beds,baths,sqft,sleeps,monthly,minNights,utilities,petFriendly,amenities,notes` (optional extras: `url,lat,lng,image,description`)
 
 `utilities` / `petFriendly` accept yes/true/1; `amenities` is separated by `;` or `,` (quote the cell if using commas).
 

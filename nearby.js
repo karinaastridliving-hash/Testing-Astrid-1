@@ -189,7 +189,7 @@
     const pts = [[dest.lat, dest.lng]];
     L.marker([dest.lat, dest.lng], { icon: L.divIcon({ className: "nb-pin nb-home", html: "★", iconSize: [30, 30] }), zIndexOffset: 1000 }).bindPopup("<strong>Destination</strong>").addTo(lgroup);
     results.forEach((r, i) => {
-      L.marker([r.lat, r.lng], { icon: L.divIcon({ className: "nb-pin", html: String(i + 1), iconSize: [26, 26] }) })
+      L.marker([r.lat, r.lng], { icon: L.divIcon({ className: "nb-pin" + (r.astrid ? " nb-astrid" : ""), html: String(i + 1), iconSize: [26, 26] }) })
         .bindPopup(`<strong>${esc(r.name)}</strong><br>${esc(r.minutes)} min drive`).addTo(lgroup);
       pts.push([r.lat, r.lng]);
     });
@@ -203,17 +203,42 @@
   };
   const A = () => ADAPTERS[PROVIDER()] || ADAPTERS.tomtom;
 
+  // Astrid's own inventory (from inventory.csv, needs lat/lng): pre-filter by straight-line distance, then drive time
+  const km = (a, b) => {
+    const R = 6371, rad = (x) => (x * Math.PI) / 180, dLat = rad(b.lat - a.lat), dLng = rad(b.lng - a.lng);
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(h));
+  };
+  function astridNearby(dest, minutes) {
+    const max = minutes * 1.3; // km: nobody drives faster than ~78 km/h on average
+    const groups = new Map(); // one entry per building (same coordinates), listing its unit types
+    for (const l of window.ASTRID_INVENTORY || []) {
+      if (l.lat == null || l.lng == null || km(dest, { lat: l.lat, lng: l.lng }) > max) continue;
+      const key = l.lat.toFixed(4) + "," + l.lng.toFixed(4);
+      (groups.get(key) || groups.set(key, []).get(key)).push(l);
+    }
+    return [...groups.values()].map((units) => {
+      const f = units[0];
+      const base = f.name.replace(/\s*\(.*\)\s*$/, "").replace(/^\s*(\d+\s*br|studio)\s+/i, "").trim() || f.name;
+      const types = [...new Set(units.map((u) => (u.beds === 0 ? "Studio" : u.beds + " BR")))].sort();
+      return {
+        id: "astrid-" + f.id, name: base, address: [f.city, f.neighborhood].filter(Boolean).join(" · "), lat: f.lat, lng: f.lng, url: f.url || "",
+        type: "Astrid Living", cats: [], astrid: true, info: `${units.length} unit${units.length === 1 ? "" : "s"}: ${types.join(", ")}`,
+      };
+    });
+  }
+
   // ---- render ----
   function renderList(dest, results, minutes, hidden) {
     $("#nb-title").textContent = `Within ${minutes} min drive of ${dest.label}`;
     $("#nb-list").innerHTML = results.length ? results.map((r, i) => `<article class="nb-item">
-        <div class="nb-n">${i + 1}</div>
+        <div class="nb-n${r.astrid ? " gold" : ""}">${i + 1}</div>
         <div class="nb-main">
           <h3>${esc(r.name)}</h3>
-          <div class="meta">${esc(r.address)}</div>
-          <div class="tags"><span class="tag ok">${esc(r.minutes)} min · ${r.km.toFixed(1)} km</span>${r.type ? `<span class="tag">${esc(r.type)}</span>` : ""}${r.cats.map((c) => `<span class="tag">${esc(c)}</span>`).join("")}</div>
+          <div class="meta">${esc(r.address)}${r.info ? " · " + esc(r.info) : ""}</div>
+          <div class="tags"><span class="tag ok">${esc(r.minutes)} min · ${r.km.toFixed(1)} km</span>${r.astrid ? `<span class="tag gold">Astrid Living</span>` : r.type ? `<span class="tag">${esc(r.type)}</span>` : ""}${r.cats.map((c) => `<span class="tag">${esc(c)}</span>`).join("")}</div>
         </div>
-        ${r.url ? `<a class="btn" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${PROVIDER() === "google" ? "Google Maps" : "Website"} ↗</a>` : ""}
+        ${r.url ? `<a class="btn" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${r.astrid ? "View on Astrid" : PROVIDER() === "google" ? "Google Maps" : "Website"} ↗</a>` : ""}
       </article>`).join("") : `<p class="empty">Nothing found within ${minutes} minutes. Try a longer drive time or more search terms.</p>`;
     status(`${results.length} place${results.length === 1 ? "" : "s"} within ${minutes} min` + (hidden ? ` (${hidden} farther away hidden)` : "") + `. Drive times are typical, without live traffic. Check availability and rates with each provider.`);
   }
@@ -228,16 +253,16 @@
     const btn = $("#nb-go");
     btn.disabled = true; status("Searching…");
     try {
-      const ck = JSON.stringify([PROVIDER(), text.toLowerCase(), minutes, cats]);
+      const ck = JSON.stringify([PROVIDER(), text.toLowerCase(), minutes, cats, (window.ASTRID_INVENTORY || []).length]);
       const cache = store.get("chs.nearbyCache", {});
       let data = cache[ck] && Date.now() - cache[ck].t < 864e5 ? cache[ck] : null; // repeat search within 24h: no Google cost
       if (!data) {
         const dest = await A().geocode(text);
         status("Finding furnished options around " + esc(dest.label) + "…");
-        const places = await A().find(dest, minutes, cats);
+        const places = (await A().find(dest, minutes, cats)).concat(astridNearby(dest, minutes));
         status(`Checking drive times for ${places.length} places…`);
         await A().drive(places, dest);
-        const within = places.filter((p) => p.minutes != null && p.minutes <= minutes).sort((a, b) => a.minutes - b.minutes);
+        const within = places.filter((p) => p.minutes != null && p.minutes <= minutes).sort((a, b) => (b.astrid ? 1 : 0) - (a.astrid ? 1 : 0) || a.minutes - b.minutes); // Astrid first, then by drive time
         data = { t: Date.now(), dest, results: within, hidden: places.length - within.length };
         const keep = Object.entries(cache).filter(([, v]) => Date.now() - v.t < 864e5).slice(-9);
         store.set("chs.nearbyCache", Object.fromEntries(keep.concat([[ck, data]])));
