@@ -11,6 +11,11 @@ create table if not exists public.shortlist (
 
 alter table public.shortlist enable row level security;
 
+-- Only signed-in users may touch this table (works whether or not "Automatically expose new tables" is on).
+revoke all on public.shortlist from anon;
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on public.shortlist to authenticated;
+
 -- Each person can read and change only their own rows, and only with a company email.
 drop policy if exists "own rows: read"   on public.shortlist;
 drop policy if exists "own rows: insert" on public.shortlist;
