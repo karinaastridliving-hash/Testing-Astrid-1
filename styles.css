@@ -148,3 +148,5 @@ td.best { color: var(--ok); font-weight: 600; }
 .tag.gold { color: var(--gold-ink); border-color: var(--gold); background: color-mix(in srgb, var(--gold) 16%, transparent); }
 .nb-pin.nb-astrid { background: #c1a463; color: #1a1f26; }
 .nb-n.gold { background: #c1a463; color: #1a1f26; }
+.nb-links { display: flex; flex-direction: column; gap: 6px; flex: none; }
+.nb-links .btn { justify-content: center; }

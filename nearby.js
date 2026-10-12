@@ -109,6 +109,16 @@
 
   // ================= TomTom adapter (free plan, no card needed to start) =================
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  // TomTom matches on the words in the search term, so offices, clinics etc. can slip in: keep lodging only
+  const HOUSING = /apartment|hotel|motel|lodging|accommodation|holiday|vacation|rental|residential|flat|hostel|guest ?house|resort|suites?|\binn\b|extended stay|serviced|condo|residence|lofts?|\bliving\b|\bstay\b|villa|bnb|b&b/i;
+  const NOT_HOUSING = /health|government|hospital|school|clinic|church|religious|doctor|dentist|bank|restaurant|shop|store|legal|insurance|school|university|library|police|fire station|post office|pharmacy|salon|gym|real estate|agency/i;
+  function isHousing(e) {
+    const kinds = e._kinds || "";
+    if (HOUSING.test(kinds)) return true;
+    if (NOT_HOUSING.test(kinds)) return false;
+    return HOUSING.test(e.name) || /corporate|housing|furnished/i.test(e.name);
+  }
+
   async function ttFetch(url, opts) {
     let res, data;
     for (let attempt = 0; attempt < 4; attempt++) {
@@ -144,13 +154,14 @@
         let url = String(poi.url || "").trim();
         if (/^[a-z][a-z0-9+.-]*:/i.test(url) && !/^https?:\/\//i.test(url)) url = ""; // only web links
         else if (url && !/^https?:\/\//i.test(url)) url = "https://" + url;
-        const e = found.get(r.id) || { id: r.id, name: poi.name || "Unnamed place", address: (r.address && r.address.freeformAddress) || "", lat: r.position.lat, lng: r.position.lon, url, type: (poi.categories && poi.categories[0]) || "", cats: [] };
+        const codes = (poi.classifications || []).map((c) => c.code).filter(Boolean);
+        const e = found.get(r.id) || { id: r.id, name: poi.name || "Unnamed place", address: (r.address && r.address.freeformAddress) || "", lat: r.position.lat, lng: r.position.lon, url, phone: poi.phone || "", type: (poi.categories && poi.categories[0]) || "", cats: [], _kinds: (poi.categories || []).concat(codes).join(" ") };
         if (!e.cats.includes(cat)) e.cats.push(cat);
         found.set(r.id, e);
       }
       await sleep(300);
     }
-    return [...found.values()];
+    return [...found.values()].filter(isHousing);
   }
 
   async function ttDriveTimes(places, dest) {
@@ -235,10 +246,13 @@
         <div class="nb-n${r.astrid ? " gold" : ""}">${i + 1}</div>
         <div class="nb-main">
           <h3>${esc(r.name)}</h3>
-          <div class="meta">${esc(r.address)}${r.info ? " · " + esc(r.info) : ""}</div>
+          <div class="meta">${esc(r.address)}${r.info ? " · " + esc(r.info) : ""}${r.phone ? ` · <a href="tel:${esc(String(r.phone).replace(/[^\d+]/g, ""))}">${esc(r.phone)}</a>` : ""}</div>
           <div class="tags"><span class="tag ok">${esc(r.minutes)} min · ${r.km.toFixed(1)} km</span>${r.astrid ? `<span class="tag gold">Astrid Living</span>` : r.type ? `<span class="tag">${esc(r.type)}</span>` : ""}${r.cats.map((c) => `<span class="tag">${esc(c)}</span>`).join("")}</div>
         </div>
-        ${r.url ? `<a class="btn" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${r.astrid ? "View on Astrid" : PROVIDER() === "google" ? "Google Maps" : "Website"} ↗</a>` : ""}
+        <div class="nb-links">
+          ${r.url ? `<a class="btn" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${r.astrid ? "View on Astrid" : PROVIDER() === "google" ? "Google Maps" : "Website"} ↗</a>` : ""}
+          ${!r.astrid && PROVIDER() === "tomtom" ? `<a class="btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.name + " " + r.address)}" target="_blank" rel="noopener noreferrer">Map ↗</a>` : ""}
+        </div>
       </article>`).join("") : `<p class="empty">Nothing found within ${minutes} minutes. Try a longer drive time or more search terms.</p>`;
     status(`${results.length} place${results.length === 1 ? "" : "s"} within ${minutes} min` + (hidden ? ` (${hidden} farther away hidden)` : "") + `. Drive times are typical, without live traffic. Check availability and rates with each provider.`);
   }
