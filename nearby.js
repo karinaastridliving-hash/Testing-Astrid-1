@@ -108,13 +108,19 @@
 
 
   // ================= TomTom adapter (free plan, no card needed to start) =================
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   async function ttFetch(url, opts) {
-    const res = await fetch(url, opts);
-    let data = null;
-    try { data = await res.json(); } catch { /* non-JSON */ }
+    let res, data;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      res = await fetch(url, opts);
+      data = null;
+      try { data = await res.json(); } catch { /* non-JSON */ }
+      if (res.status !== 429) break;
+      await sleep(800 * (attempt + 1)); // free keys allow only a few requests per second: wait and retry
+    }
     if (!res.ok) {
       const detail = data && (data.detailedError && data.detailedError.message || data.errorText || data.error || data.message);
-      const hint = res.status === 403 || res.status === 401 ? " Check the TomTom key and that the Search, Routing and Map Display APIs are enabled for it." : res.status === 429 ? " Daily free limit reached; try again later." : "";
+      const hint = res.status === 403 || res.status === 401 ? " Check the TomTom key and that the Search, Routing and Map Display APIs are enabled for it." : res.status === 429 ? " Too many requests for the free plan (per second or per day). Wait a minute and try again." : "";
       throw new Error(`TomTom ${res.status}${detail ? ": " + (typeof detail === "string" ? detail : JSON.stringify(detail)) : ""}.${hint}`);
     }
     return data;
@@ -130,7 +136,7 @@
   async function ttFindPlaces(dest, minutes, cats) {
     const radius = Math.min(50000, minutes * 1000);
     const found = new Map();
-    await Promise.all(cats.map(async (cat) => {
+    for (const cat of cats) {
       const d = await ttFetch(`https://api.tomtom.com/search/2/poiSearch/${encodeURIComponent(cat)}.json?key=${encodeURIComponent(KEY())}&lat=${dest.lat}&lon=${dest.lng}&radius=${radius}&limit=50&relatedPois=off`);
       for (const r of (d && d.results) || []) {
         if (!r.position) continue;
@@ -142,11 +148,13 @@
         if (!e.cats.includes(cat)) e.cats.push(cat);
         found.set(r.id, e);
       }
-    }));
+      await sleep(300);
+    }
     return [...found.values()];
   }
 
   async function ttDriveTimes(places, dest) {
+    await sleep(300);
     const pt = (lat, lng) => ({ point: { latitude: lat, longitude: lng } });
     for (let i = 0; i < places.length; i += 100) {
       const batch = places.slice(i, i + 100);
