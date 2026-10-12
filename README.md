@@ -71,6 +71,12 @@ Without sign-in, a shortlist lives in one browser. With sign-in, each person has
 - `true` (default): people can **create their own account** and use **"Forgot password?"**; both send an email (confirmation / reset link). Supabase's built-in email sender is only for testing (very low hourly limit and, as far as we know, limited recipients), so for the whole company connect a mail sender: Authentication → Emails → SMTP Settings (for example Resend, or your company's SMTP).
 - `false`: **nothing is ever emailed.** In Authentication → Sign In / Providers turn **off** "Allow new users to sign up" and **off** "Confirm email". You create each person under Authentication → Users → Add user (email + password, tick "Auto Confirm User") and reset passwords there when someone forgets. Set `MIN_PASSWORD_LENGTH = 6` only if you accept 6-digit PINs (easy to guess; not recommended).
 
+## Feedback button
+
+A "💬 Feedback" button on every page opens a window where people choose what the feedback is about (each tool, general experience, or *Other* with a free-text box), the kind of feedback (problem / suggestion / praise), an overall rating, and a message. Signed-in users get their email attached; the page, screen size and browser are attached to every response.
+
+Setup: SQL Editor → New query → paste `supabase/feedback.sql` → Run. Anyone can **send** feedback; nobody can read it through the website. Read it in Supabase → **Table Editor → feedback** (use **Export → CSV** to share it). If Supabase is not set up, put an address in `FEEDBACK_EMAIL` in `config.js` and the button opens a pre-filled email instead.
+
 ## Astrid inventory (`inventory.csv`)
 
 `inventory.csv` is loaded automatically when the site opens and is shown as "Astrid inventory" (the sample data is then hidden). It was built on 2026-10-12 from two sources:

@@ -15,6 +15,8 @@
   if (!URL_ || !KEY || !window.supabase) return; // not configured: keep the button hidden
 
   const sb = window.supabase.createClient(URL_, KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+  window.CHS_SB = sb; // shared with feedback.js
+  window.CHS_USER = () => user;
   const emailOk = (e) => { const v = String(e || "").trim().toLowerCase(); return DOMAIN ? v.endsWith("@" + DOMAIN) : /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v); };
   const here = () => location.origin + location.pathname;
   let user = null, mode = "signin";
