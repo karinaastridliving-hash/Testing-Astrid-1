@@ -7,13 +7,15 @@
   const $ = (s) => document.querySelector(s);
   const btn = $("#btn-auth");
   const URL_ = window.SUPABASE_URL, KEY = window.SUPABASE_ANON_KEY;
-  const DOMAIN = String(window.ALLOWED_EMAIL_DOMAIN || "astridliving.com").toLowerCase();
+  // "" = any email address (accounts are created by an admin and self sign-up is off); "company.com" = only that domain
+  const DOMAIN = (window.ALLOWED_EMAIL_DOMAIN === undefined ? "astridliving.com" : String(window.ALLOWED_EMAIL_DOMAIN)).trim().toLowerCase();
+  const WHO = DOMAIN ? `your @${DOMAIN} email address` : "a valid email address";
   const MIN = Math.max(6, +window.MIN_PASSWORD_LENGTH || 10); // use 6 to allow 6-digit PINs (weaker; see README)
   const EMAIL_FEATURES = window.AUTH_EMAIL_FEATURES !== false; // false = no emails at all: accounts are created by an admin, who also resets passwords
   if (!URL_ || !KEY || !window.supabase) return; // not configured: keep the button hidden
 
   const sb = window.supabase.createClient(URL_, KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
-  const emailOk = (e) => String(e || "").trim().toLowerCase().endsWith("@" + DOMAIN);
+  const emailOk = (e) => { const v = String(e || "").trim().toLowerCase(); return DOMAIN ? v.endsWith("@" + DOMAIN) : /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v); };
   const here = () => location.origin + location.pathname;
   let user = null, mode = "signin";
 
@@ -25,8 +27,8 @@
   const TITLES = { signin: "Sign in", signup: "Create your account", forgot: "Reset your password", recover: "Set a new password", account: "Your account" };
   const SUBS = {
     signin: "Sign in with your work email and password. Your shortlist is saved to your account and follows you to any device.",
-    signup: `Use your @${DOMAIN} email. Choose a password of at least ${MIN} characters. We'll email you a link to confirm your address.`,
-    forgot: `Enter your @${DOMAIN} email and we'll send you a link to choose a new password.`,
+    signup: `Use ${WHO}. Choose a password of at least ${MIN} characters. We'll email you a link to confirm your address.`,
+    forgot: `Enter ${WHO} and we'll send you a link to choose a new password.`,
     recover: `Choose a new password (at least ${MIN} characters).`,
     account: "",
   };
@@ -88,7 +90,7 @@
 
   sb.auth.onAuthStateChange((event, session) => {
     const next = session && session.user ? session.user : null;
-    if (next && !emailOk(next.email)) { sb.auth.signOut(); return toast("Only @" + DOMAIN + " addresses can sign in."); }
+    if (next && !emailOk(next.email)) { sb.auth.signOut(); return toast(`Only @${DOMAIN} addresses can sign in.`); }
     const changed = (next && next.id) !== (user && user.id);
     user = next;
     ui();
@@ -107,7 +109,7 @@
     const em = email.value.trim().toLowerCase();
     send.disabled = true;
     try {
-      if ((mode === "signin" || mode === "signup" || mode === "forgot") && !emailOk(em)) return (msg.textContent = `Please use your @${DOMAIN} email address.`);
+      if ((mode === "signin" || mode === "signup" || mode === "forgot") && !emailOk(em)) return (msg.textContent = `Please use ${WHO}.`);
       if (mode === "signin") {
         msg.textContent = "Signing in…";
         const { error } = await sb.auth.signInWithPassword({ email: em, password: pw.value });
@@ -118,7 +120,7 @@
         if (pw.value !== pw2.value) return (msg.textContent = "The two passwords don't match.");
         msg.textContent = "Creating your account…";
         const { data, error } = await sb.auth.signUp({ email: em, password: pw.value, options: { emailRedirectTo: here() } });
-        if (error) return (msg.textContent = /database|domain|astrid/i.test(error.message) ? `Only @${DOMAIN} addresses can create an account.` : "Couldn't create the account: " + error.message);
+        if (error) return (msg.textContent = /database|domain|astrid/i.test(error.message) ? (DOMAIN ? `Only @${DOMAIN} addresses can create an account.` : "Account creation is turned off. Ask your administrator.") : "Couldn't create the account: " + error.message);
         pw.value = pw2.value = "";
         if (data && data.session) { dlg.close(); toast("Account created"); }
         else msg.textContent = "Account created. Open the email we sent you and tap the confirmation link, then sign in.";

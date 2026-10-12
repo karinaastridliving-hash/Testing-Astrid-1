@@ -58,11 +58,11 @@ A browser key is visible to anyone who views the site, so restrict it where the 
 
 ## Sign-in and saved shortlists (Supabase)
 
-Without sign-in, a shortlist lives in one browser. With sign-in, each person has an account (work email + password), and their shortlist is saved privately to it and follows them across devices. Nobody sees anyone else's shortlist. The Astrid inventory itself stays public. The sign-in button only appears once `SUPABASE_URL` and `SUPABASE_ANON_KEY` are set in `config.js`.
+Without sign-in, a shortlist lives in one browser. With sign-in, each person has an account (work email + password), and their shortlist is saved privately to it and follows them across devices. Accounts are created by an administrator (any email address) and self sign-up is turned off; set `ALLOWED_EMAIL_DOMAIN` in `config.js` only if you also want to restrict by domain. Nobody sees anyone else's shortlist. The Astrid inventory itself stays public. The sign-in button only appears once `SUPABASE_URL` and `SUPABASE_ANON_KEY` are set in `config.js`.
 
 **Setup (about 15 minutes, free plan)**
 1. Create a project at https://supabase.com (name e.g. `astrid-sourcing`).
-2. SQL Editor → New query → paste `supabase/setup.sql` → Run. This creates the shortlist table, makes each row private to its owner, and allows only `@astridliving.com` addresses.
+2. SQL Editor → New query → paste `supabase/setup.sql` → Run. This creates the shortlist table and makes each row private to its owner.
 3. Project Settings → API: copy the **Project URL** and the **anon / publishable key** into `config.js` (`SUPABASE_URL`, `SUPABASE_ANON_KEY`). The anon key is meant to be public; the table rules above protect the data. Never put the `service_role` key in the site.
 4. Authentication → URL Configuration: set **Site URL** to `https://karinaastridliving-hash.github.io/Testing-Astrid-1/` and add the same address under **Redirect URLs**.
 5. Authentication → Sign In / Providers → Email: keep Email enabled, set the minimum password length (10 recommended).
