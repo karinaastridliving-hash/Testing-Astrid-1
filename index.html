@@ -34,6 +34,35 @@
     </nav>
   </section>
 
+  <section class="wrap nearby-wrap">
+    <div class="panel nearby" aria-label="Search near a destination">
+      <h2>Search near a destination</h2>
+      <p class="sub">Enter where the client needs to be. We find furnished apartments, rentals, serviced apartments, corporate housing and aparthotels around it, and keep only those within your drive time.</p>
+      <div class="nb-form">
+        <label class="nb-dest">Destination (office, site or address)
+          <input id="nb-dest" type="text" placeholder="e.g. 200 Park Ave, New York" autocomplete="off">
+        </label>
+        <label>Max drive time
+          <select id="nb-minutes">
+            <option value="10">10 minutes</option><option value="15">15 minutes</option>
+            <option value="20" selected>20 minutes</option><option value="30">30 minutes</option>
+            <option value="45">45 minutes</option>
+          </select>
+        </label>
+        <button id="nb-go" class="btn primary big" type="button">Find nearby</button>
+      </div>
+      <div id="nb-cats" class="nb-cats"></div>
+      <div id="nb-status" class="meta" aria-live="polite"></div>
+      <div id="nb-out" class="nb-out" hidden>
+        <h3 id="nb-title"></h3>
+        <div class="nb-body">
+          <div id="nb-map" class="nb-map"></div>
+          <div id="nb-list" class="nb-list"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <main class="wrap workspace">
     <section class="panel filters" aria-label="Build your search">
       <h2>Build your search</h2>
@@ -157,5 +186,6 @@
   <script src="config.js"></script>
   <script src="data.js"></script>
   <script src="app.js"></script>
+  <script src="nearby.js"></script>
 </body>
 </html>

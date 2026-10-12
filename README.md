@@ -42,6 +42,17 @@ Cost controls: the worker uses Claude Haiku 5.5 with low effort, at most 4 web s
 
 Notes: results are AI-gathered from public web pages and **must be verified** on the source page (price, availability, terms). The worker only accepts requests from `ALLOWED_ORIGIN`, but that is not strong protection: keep the spend limit on.
 
+## Nearby search (Google Maps key)
+
+"Search near a destination" geocodes the destination, searches Google Places for *furnished apartments, furnished rentals, furnished housing, serviced apartments, corporate apartments for rent* and *aparthotels* around it, keeps only results within the chosen drive time (Google Routes, typical drive time without live traffic) and shows them on a map and in a list. It needs a Google Maps API key:
+
+1. Go to https://console.cloud.google.com, create a project and link a **billing account** (Google bills per request; set a **budget alert** and daily **quota caps** under APIs & Services → Quotas).
+2. APIs & Services → Library: enable **Maps JavaScript API**, **Places API (New)** and **Routes API**.
+3. APIs & Services → Credentials → Create credentials → **API key**. Edit the key: *Application restrictions* → Websites → add `https://karinaastridliving-hash.github.io/*`; *API restrictions* → restrict to the three APIs above.
+4. Put the key in `config.js` as `window.GOOGLE_MAPS_KEY`, commit and push.
+
+A browser key is visible to anyone who views the site, which is why step 3 (website + API restriction) matters. Without a key the panel shows links that open the same searches in Google Maps. The same search repeated within 24 hours is served from the browser cache and costs nothing. Only the cheaper Places fields are requested (no ratings or websites).
+
 ## Astrid inventory (`inventory.csv`)
 
 `inventory.csv` is loaded automatically when the site opens and is shown as "Astrid inventory" (the sample data is then hidden). It holds the 839 properties from the Hosteeva "Property Search" export: name, city, bedrooms, bathrooms, property ID (in the notes) and the FAQ link where one exists. The export has no rates, minimum stay, capacity, size or amenities, so those show as unknown ("Price on request", "—") instead of guessed values. To update the inventory, replace `inventory.csv` using the same columns as below.
