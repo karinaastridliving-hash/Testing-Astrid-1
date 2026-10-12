@@ -98,6 +98,8 @@
     $("#tile-feed-n").textContent = feedListings.length + userListings.length;
     $("#tile-short-n").textContent = shortlist.size;
     $("#btn-sample").hidden = hotelListings.length > 0;
+    $("#btn-clear-imports").hidden = userListings.length === 0;
+    $("#btn-clear-imports").textContent = `Clear my imports (${userListings.length})`;
     $("#btn-sample").textContent = store.get("chs.hideSample", false) ? "Show sample data" : "Hide sample data";
   }
 
@@ -238,6 +240,17 @@
   });
 
   $("#btn-add").addEventListener("click", () => $("#dlg-add").showModal());
+  $("#btn-clear-imports").addEventListener("click", () => {
+    if (!userListings.length) return;
+    if (!confirm(`Remove the ${userListings.length} listing(s) you added or imported with CSV in this browser?\n\nThe Astrid inventory is not affected.`)) return;
+    const gone = new Set(userListings.map((l) => l.id));
+    userListings = [];
+    store.set("chs.user", []);
+    shortlist = new Set([...shortlist].filter((id) => !gone.has(id)));
+    saveShort();
+    buildFilterOptions(); rerender();
+    toast("Imported listings removed");
+  });
   $("#btn-add-cancel").addEventListener("click", () => $("#dlg-add").close());
   $("#form-add").addEventListener("submit", (e) => {
     e.preventDefault();
