@@ -17,6 +17,7 @@
       </div>
       <div class="bar-right">
         <p class="tagline">Find a place. Create an experience.</p>
+        <button id="btn-auth" class="btn theme-btn" type="button" hidden>Sign in</button>
         <button id="btn-theme" class="btn theme-btn" type="button" aria-label="Switch between light and dark mode">🌙 Dark mode</button>
       </div>
     </div>
@@ -143,6 +144,7 @@
   <!-- Shortlist / compare drawer -->
   <dialog id="dlg-short">
     <form method="dialog" class="dlg-head"><h2>Shortlist</h2><button class="btn">Close</button></form>
+    <p id="short-hint" class="meta" hidden></p>
     <div id="short-body"></div>
     <div class="dlg-actions">
       <button id="btn-compare-csv" class="btn">Export CSV</button>
@@ -184,11 +186,43 @@
     </form>
   </dialog>
 
+  <!-- Sign in -->
+  <dialog id="dlg-auth">
+    <form id="form-auth" class="addform" novalidate>
+      <h2 id="auth-title">Sign in</h2>
+      <p id="auth-sub" class="sub"></p>
+      <label id="auth-email-row">Work email
+        <input id="auth-email" type="email" autocomplete="username" placeholder="name@astridliving.com">
+      </label>
+      <label id="auth-pw-row"><span id="auth-pw-label">Password</span>
+        <input id="auth-pw" type="password" autocomplete="current-password" minlength="10">
+      </label>
+      <label id="auth-pw2-row">Repeat password
+        <input id="auth-pw2" type="password" autocomplete="new-password" minlength="10">
+      </label>
+      <div id="auth-account" hidden>
+        <p id="auth-who" class="meta"></p>
+        <div class="dlg-actions" style="justify-content:flex-start">
+          <button type="button" id="auth-changepw" class="btn">Change password</button>
+          <button type="button" id="auth-signout" class="btn danger">Sign out</button>
+        </div>
+      </div>
+      <div id="auth-msg" class="meta" aria-live="polite"></div>
+      <div id="auth-links" class="auth-links"></div>
+      <div class="dlg-actions">
+        <button type="button" id="auth-cancel" class="btn">Close</button>
+        <button id="auth-send" class="btn primary">Sign in</button>
+      </div>
+    </form>
+  </dialog>
+
   <div id="toast" role="status" aria-live="polite"></div>
   <script src="config.js"></script>
   <script src="data.js"></script>
+  <script src="vendor/supabase/supabase.js"></script>
   <script src="app.js"></script>
   <script src="vendor/leaflet/leaflet.js"></script>
   <script src="nearby.js"></script>
+  <script src="auth.js"></script>
 </body>
 </html>

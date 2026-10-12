@@ -8,6 +8,7 @@
 
   let userListings = store.get("chs.user", []);
   let shortlist = new Set(store.get("chs.short", []));
+  const snapshots = new Map(Object.entries(store.get("chs.snap", {}))); // listing data kept for shortlisted items (live results, other devices)
   const AMENITIES = ["Furnished", "Gym", "Pool", "Parking", "Washer/Dryer", "Laundry", "Concierge", "Elevator", "Air Conditioning", "Wi-Fi", "Kitchen", "Balcony/Terrace", "Business Center", "EV Charger"];
 
   let feedListings = [];
@@ -128,8 +129,26 @@
   }
 
   // ---------- shortlist ----------
-  const shortItems = () => all().filter((l) => shortlist.has(l.id));
-  function saveShort() { store.set("chs.short", [...shortlist]); }
+  const shortItems = () => {
+    const current = new Map(all().map((l) => [l.id, l]));
+    return [...shortlist].map((id) => current.get(id) || snapshots.get(id)).filter(Boolean);
+  };
+  function saveShort() {
+    store.set("chs.short", [...shortlist]);
+    store.set("chs.snap", Object.fromEntries([...snapshots].filter(([id]) => shortlist.has(id))));
+  }
+  // hooks for auth.js: a signed-in user's shortlist is stored in their account
+  window.CHS = {
+    onChange: null,
+    entries: () => [...shortlist].map((id) => ({ id, snapshot: (all().find((l) => l.id === id)) || snapshots.get(id) || null })),
+    setEntries(entries) {
+      shortlist = new Set(entries.map((e) => e.id));
+      for (const e of entries) if (e.snapshot) snapshots.set(e.id, e.snapshot);
+      saveShort(); render();
+      if ($("#dlg-short").open) renderShortlist();
+    },
+    reset() { shortlist = new Set(); snapshots.clear(); saveShort(); render(); if ($("#dlg-short").open) renderShortlist(); },
+  };
 
   function renderShortlist() {
     const items = shortItems();
@@ -210,8 +229,10 @@
     const b = e.target.closest("[data-short]");
     if (!b) return;
     const id = b.dataset.short;
-    shortlist.has(id) ? shortlist.delete(id) : shortlist.add(id);
+    const adding = !shortlist.has(id);
+    if (adding) { shortlist.add(id); const l = all().find((x) => x.id === id); if (l) snapshots.set(id, l); } else shortlist.delete(id);
     saveShort(); render();
+    if (window.CHS.onChange) window.CHS.onChange(adding ? "add" : "remove", id, snapshots.get(id) || null);
     if ($("#dlg-short").open) renderShortlist();
   });
 
@@ -227,7 +248,7 @@
   });
 
   $("#btn-shortlist").addEventListener("click", () => { renderShortlist(); $("#dlg-short").showModal(); });
-  $("#btn-clear-short").addEventListener("click", () => { shortlist.clear(); saveShort(); renderShortlist(); render(); });
+  $("#btn-clear-short").addEventListener("click", () => { shortlist.clear(); snapshots.clear(); saveShort(); renderShortlist(); render(); if (window.CHS.onChange) window.CHS.onChange("clear"); });
   $("#btn-compare-csv").addEventListener("click", () => {
     const items = shortItems();
     if (!items.length) return toast("Shortlist is empty");
@@ -347,7 +368,7 @@
       const head = rows.shift().map((x) => x.trim());
       hotelListings = rows.map((r, i) => {
         const l = normalize(Object.fromEntries(head.map((x, j) => [x, r[j] ?? ""])));
-        if (l) { l.id = "h" + i; l.hotel = true; l.imported = false; }
+        if (l) { const pid = (l.notes.match(/Property ID (\d+)/) || [])[1]; l.id = "h" + (pid || "i" + i); l.hotel = true; l.imported = false; } // stable id so saved shortlists survive inventory updates
         return l;
       }).filter(Boolean);
       window.ASTRID_INVENTORY = hotelListings;

@@ -150,3 +150,7 @@ td.best { color: var(--ok); font-weight: 600; }
 .nb-n.gold { background: #c1a463; color: #1a1f26; }
 .nb-links { display: flex; flex-direction: column; gap: 6px; flex: none; }
 .nb-links .btn { justify-content: center; }
+.auth-links { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; }
+.auth-links button { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .auth-links button { color: var(--gold); } }
+:root[data-theme="dark"] .auth-links button { color: var(--gold); }

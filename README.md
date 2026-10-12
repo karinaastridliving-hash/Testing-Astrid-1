@@ -56,6 +56,21 @@ Set `window.MAP_PROVIDER = "google"` and `window.GOOGLE_MAPS_KEY`. In Google Clo
 
 A browser key is visible to anyone who views the site, so restrict it where the provider allows. Without a key the panel shows links that open the same searches in Google Maps. The same search repeated within 24 hours is served from the browser cache and costs nothing. The map uses Leaflet (bundled in `vendor/leaflet`, BSD-2 licence).
 
+## Sign-in and saved shortlists (Supabase)
+
+Without sign-in, a shortlist lives in one browser. With sign-in, each person has an account (work email + password), and their shortlist is saved privately to it and follows them across devices. Nobody sees anyone else's shortlist. The Astrid inventory itself stays public. The sign-in button only appears once `SUPABASE_URL` and `SUPABASE_ANON_KEY` are set in `config.js`.
+
+**Setup (about 15 minutes, free plan)**
+1. Create a project at https://supabase.com (name e.g. `astrid-sourcing`).
+2. SQL Editor → New query → paste `supabase/setup.sql` → Run. This creates the shortlist table, makes each row private to its owner, and allows only `@astridliving.com` addresses.
+3. Project Settings → API: copy the **Project URL** and the **anon / publishable key** into `config.js` (`SUPABASE_URL`, `SUPABASE_ANON_KEY`). The anon key is meant to be public; the table rules above protect the data. Never put the `service_role` key in the site.
+4. Authentication → URL Configuration: set **Site URL** to `https://karinaastridliving-hash.github.io/Testing-Astrid-1/` and add the same address under **Redirect URLs**.
+5. Authentication → Sign In / Providers → Email: keep Email enabled, set the minimum password length (10 recommended).
+
+**Two ways to run it** (`AUTH_EMAIL_FEATURES` in `config.js`)
+- `true` (default): people can **create their own account** and use **"Forgot password?"**; both send an email (confirmation / reset link). Supabase's built-in email sender is only for testing (very low hourly limit and, as far as we know, limited recipients), so for the whole company connect a mail sender: Authentication → Emails → SMTP Settings (for example Resend, or your company's SMTP).
+- `false`: **nothing is ever emailed.** In Authentication → Sign In / Providers turn **off** "Allow new users to sign up" and **off** "Confirm email". You create each person under Authentication → Users → Add user (email + password, tick "Auto Confirm User") and reset passwords there when someone forgets. Set `MIN_PASSWORD_LENGTH = 6` only if you accept 6-digit PINs (easy to guess; not recommended).
+
 ## Astrid inventory (`inventory.csv`)
 
 `inventory.csv` is loaded automatically when the site opens and is shown as "Astrid inventory" (the sample data is then hidden). It was built on 2026-10-12 from two sources:
