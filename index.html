@@ -289,15 +289,13 @@
   <script src="vendor/leaflet/leaflet.js"></script>
   <script src="nearby.js"></script>
   <script src="auth.js"></script>
-  <script src="feedback.js">
-    <script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function () {
-      navigator.serviceWorker.register("sw.js").catch(function () {});
-    });
-  }
-</script>
-
+   <script src="feedback.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("sw.js").catch(function () {});
+      });
+    }
   </script>
 </body>
 </html>
