@@ -1,264 +1,51 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Astrid Living · Proposal Generator</title>
-<meta name="theme-color" content="#c1a463">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="stylesheet" href="styles.css">
-<script>try{var t=JSON.parse(localStorage.getItem("chs.theme"));if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
-<style>
-.pg{display:grid;grid-template-columns:1.1fr 1fr;gap:24px;padding-top:24px;padding-bottom:56px;align-items:start}
-.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
-.opt{border:1px solid var(--line);border-top:3px solid var(--gold);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px;background:var(--field)}
-.opt-h{display:flex;justify-content:space-between;align-items:center;font:400 20px var(--serif);color:var(--head)}
-.calc{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface);font-size:13px}
-.calc div{display:flex;justify-content:space-between;padding:2px 0}
-.calc .tot{border-top:1px solid var(--line);margin-top:4px;padding-top:6px;font:400 18px var(--serif);color:var(--head)}
-.warn{background:color-mix(in srgb,var(--gold) 20%,transparent);border-radius:10px;padding:8px 12px;font-size:13px}
-.feerow{display:grid;grid-template-columns:2fr 1fr 1.3fr auto;gap:8px;align-items:center}
-.tabs{display:flex;gap:8px}
-.tabs .btn[aria-selected=true]{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
-.pane{border:1px solid var(--line);border-radius:14px;background:#fff;padding:18px;max-height:75vh;overflow:auto}
-.doc{font:13px/1.6 Georgia,serif;color:#1a1f26;background:#fff}
-.doc h3{font:400 22px Georgia,serif;margin:0 0 4px;color:#1f3347}
-.doc .hd{display:flex;align-items:center;gap:10px;border-bottom:2px solid #c1a463;padding-bottom:8px;margin-bottom:12px}
-.doc .hd img{height:34px}
-.doc hr{border:0;border-top:1px solid #e3ddcd;margin:12px 0}
-.doc .red{color:#b3261e;font-weight:600}
-.doc table{width:100%;border-collapse:collapse;font-size:12px}
-.doc th,.doc td{border-bottom:1px solid #e3ddcd;padding:6px 8px 6px 0;text-align:left;vertical-align:top}
-.doc .ph{width:100%;max-height:230px;object-fit:cover;border-radius:6px;margin-bottom:10px}
-.doc .fine{font-size:11px;color:#646b76;font-style:italic}
-.pgb{page-break-after:always;padding:6px 0}
-#printArea{display:none}
-@media (max-width:900px){.pg{grid-template-columns:1fr}.feerow{grid-template-columns:1fr 1fr}}
-@media print{body.printing>*:not(#printArea){display:none!important}body.printing #printArea{display:block}@page{margin:14mm}}
-</style>
-</head>
-<body>
-<header class="topbar"><div class="wrap bar">
-  <div class="brand"><img src="logo.png" alt="Astrid Living" onerror="this.remove()"><span class="studio">Proposal Generator</span></div>
-  <div class="bar-right"><a class="btn" href="./">← Sourcing Studio</a></div>
-</div></header>
-
-<main class="wrap pg">
-  <div style="display:flex;flex-direction:column;gap:24px">
-    <section class="panel">
-      <h2>Proposal details</h2>
-      <div class="g">
-        <label style="grid-column:1/-1">Proposal name<input id="pname" value="Temporary Housing Proposal"></label>
-        <label>Client / company<input id="client" placeholder="e.g. Mission of Australia"></label>
-        <label>Guest name<input id="guest" value="TBD"></label>
-        <label>Move-in<input id="mi" type="date"></label>
-        <label>Move-out<input id="mo" type="date"></label>
-        <label>Valid until<input id="valid" type="date"></label>
-        <label style="grid-column:1/-1">Preferred location (distances are measured to it)<input id="ref" placeholder="e.g. 711 3rd Ave, New York, NY"></label>
-        <label style="grid-column:1/-1">General comments<textarea id="gc" rows="2" maxlength="500"></textarea></label>
-        <label style="grid-column:1/-1">Attachments
-          <input id="files" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.docx">
-          <span class="meta" id="flist">Files are listed in the email reminder only; attach them to your email manually.</span></label>
-      </div>
-    </section>
-    <section class="panel">
-      <h2>Property options</h2>
-      <div id="opts" style="display:flex;flex-direction:column;gap:16px"></div>
-      <button class="btn primary" id="add" type="button">+ Add property option</button>
-    </section>
-  </div>
-
-  <aside class="panel" aria-label="Preview">
-    <h2>Preview</h2>
-    <div class="tabs" role="tablist">
-      <button class="btn" role="tab" id="t-mail" aria-selected="true" type="button">Email</button>
-      <button class="btn" role="tab" id="t-pdf" aria-selected="false" type="button">PDF &amp; profiles</button>
-    </div>
-    <div class="pane"><div class="doc" id="out"></div></div>
-    <div class="dlg-actions" style="justify-content:flex-start">
-      <button class="btn primary" id="copy" type="button">Copy email</button>
-      <button class="btn" id="print" type="button">Print / Save as PDF</button>
-    </div>
-    <div class="meta" id="msg" aria-live="polite"></div>
-  </aside>
-</main>
-
-<dialog id="dp">
-  <form id="fp" class="addform" method="dialog">
-    <h2>New property</h2>
-    <label>Name<input name="name" required></label>
-    <label>Address<input name="addr" required></label>
-    <label>Amenities (comma-separated)<input name="am" placeholder="24-Hour Front Desk, Elevator, Laundry"></label>
-    <label>Housekeeping<input name="hk" placeholder="Weekly (complimentary)"></label>
-    <label>Description<textarea name="desc" rows="3"></textarea></label>
-    <label>Room types (one per line: name | size | kitchen)<textarea name="units" rows="3" placeholder="Studio Queen | 350 sq.ft. | Fully equipped kitchen"></textarea></label>
-    <div class="dlg-actions"><button type="button" class="btn" id="pc">Cancel</button><button class="btn primary">Save property</button></div>
-  </form>
-</dialog>
-<div id="printArea"></div>
-<div id="toast" role="status" aria-live="polite"></div>
-
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Astrid Living · Proposal Generator</title>
+<link rel="stylesheet" href="styles.css"><link rel="icon" href="icons/favicon-32.png"><style>
+:root{--pgold:#c1a463;--pline:#ded9ce}*{box-sizing:border-box}.pg-layout{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(350px,1fr);gap:24px;padding:24px 0 55px;align-items:start}.pg-stack{display:grid;gap:24px}.pg-panel{border:1px solid var(--line,#ded9ce);border-radius:16px;padding:20px;background:var(--surface,#fff)}.pg-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.pg-wide{grid-column:1/-1}.pg-layout label{display:grid;gap:5px;font-size:13px}.pg-layout input:not([type=checkbox]):not([type=file]),.pg-layout select,.pg-layout textarea{width:100%;min-width:0;padding:10px;border:1px solid var(--line,#d8d8d8);border-radius:8px;background:var(--field,#fff);color:var(--text,#232a31);font:inherit}.pg-layout h2{font-size:20px;margin:0 0 16px}.pg-stack .pg-panel{min-width:0}.pg-opt{border:1px solid var(--pline);border-top:3px solid var(--pgold);border-radius:14px;padding:15px;display:grid;gap:14px;margin-bottom:14px}.pg-opt-head,.pg-actions,.pg-totals>div{display:flex;align-items:center;justify-content:space-between;gap:10px}.pg-actions{justify-content:flex-start;flex-wrap:wrap}.pg-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:8px 13px;border:1px solid var(--pline);border-radius:9px;background:var(--surface,#fff);color:var(--text,#262b30);cursor:pointer;font:inherit}.pg-btn.primary{background:var(--pgold);color:#1f2530;border-color:var(--pgold);font-weight:650}.pg-btn:disabled{opacity:.5;cursor:default}.pg-meta{font-size:12px;opacity:.76}.pg-alert{font-size:13px;padding:10px;border-radius:9px;background:#f7efde;color:#594015}.pg-totals{padding:11px;background:var(--field,#f6f5f1);border:1px solid var(--pline);border-radius:10px;font-size:13px}.pg-totals>div{padding:3px 0}.pg-totals .total{border-top:1px solid var(--pline);padding-top:8px;margin-top:6px;font-size:17px;font-weight:700}.pg-fee{display:grid;grid-template-columns:minmax(80px,2fr) minmax(65px,1fr) minmax(94px,1.25fr) auto;gap:6px;margin:6px 0}.pg-fee .pg-btn{padding:6px}.pg-preview{max-height:73vh;overflow:auto;background:white;border:1px solid #ded9ce;border-radius:12px;padding:18px;color:#1f2934}.pg-doc{font:13px/1.55 Georgia,serif;color:#1f2934}.pg-doc .heading{border-bottom:2px solid #c1a463;padding-bottom:10px;display:flex;align-items:center;justify-content:space-between}.pg-doc .heading img{max-height:38px;max-width:150px}.pg-doc h3{font-size:22px;font-weight:400;margin:15px 0 5px}.pg-doc hr{border:0;border-top:1px solid #e4dccc;margin:16px 0}.pg-doc table{width:100%;border-collapse:collapse;font-size:11px}.pg-doc td,.pg-doc th{border-bottom:1px solid #e4dccc;padding:8px 5px;text-align:left;vertical-align:top}.pg-doc .photo{display:block;width:100%;max-height:270px;object-fit:cover;margin-top:12px;border-radius:6px}.pg-doc .page{page-break-after:always;padding:4px 0 20px}.pg-doc .red{color:#ad342e;font-weight:600}.pg-doc .fine{font-size:11px;color:#727782}.pg-pick{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0 15px;padding:14px;border:1px solid var(--pline);border-radius:10px;background:var(--field,#faf9f7)}.pg-pick .full{grid-column:1/-1}.pg-pick-info{display:flex;gap:12px;align-items:flex-start;padding:10px;border:1px solid var(--pline);border-radius:9px;grid-column:1/-1;background:var(--surface,#fff)}.pg-pick-info img{width:100px;height:76px;object-fit:cover;border-radius:6px}.pg-pick-info a{overflow-wrap:anywhere}.pg-check{display:flex!important;align-items:center;gap:8px}.pg-hidden{display:none!important}#printArea{display:none}.pg-tag{font-size:11px;border:1px solid var(--pline);border-radius:20px;padding:2px 8px}.pg-modal{border:1px solid var(--pline);border-radius:16px;max-width:480px;width:calc(100% - 32px);padding:20px}.pg-modal form{display:grid;gap:13px}.pg-modal input,.pg-modal textarea{padding:9px;width:100%;border:1px solid #bbb;border-radius:8px}@media(max-width:950px){.pg-layout{grid-template-columns:1fr}}@media(max-width:550px){.pg-grid,.pg-pick{grid-template-columns:1fr}.pg-wide,.pg-pick .full,.pg-pick-info{grid-column:1}.pg-fee{grid-template-columns:1fr 1fr}.pg-fee>*:first-child{grid-column:1/-1}}@media print{body.printing>*:not(#printArea){display:none!important}body.printing #printArea{display:block!important}.pg-doc .page{break-after:page}@page{margin:14mm}}
+</style></head><body>
+<header class="topbar"><div class="wrap bar"><div class="brand"><img src="logo.png" alt="Astrid Living"><span class="studio">Proposal Generator</span></div><div class="bar-right"><a href="./" class="btn">← Sourcing Studio</a></div></div></header>
+<main class="wrap pg-layout"><div class="pg-stack"><section class="pg-panel"><h2>Proposal details</h2><div class="pg-grid"><label class="pg-wide">Proposal name<input id="pname" value="Temporary Housing Proposal"></label><label>Client / company<input id="client" placeholder="Client name"></label><label>Guest name<input id="guest" value="TBD"></label><label>Move-in<input id="mi" type="date"></label><label>Move-out<input id="mo" type="date"></label><label>Valid until<input id="valid" type="date"></label><label class="pg-wide">Preferred location<input id="ref" placeholder="e.g. 711 3rd Ave, New York, NY"></label><label class="pg-wide">General comments<textarea id="gc" rows="2"></textarea></label><label class="pg-wide">Attachments<input id="files" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.docx"><span id="flist" class="pg-meta">Attach these to your outgoing email manually.</span></label></div></section>
+<section class="pg-panel"><h2>Astrid Inventory <span class="pg-tag" id="inventoryCount">Loading</span></h2><div class="pg-pick"><label>City<select id="cityFilter"><option value="">All cities</option></select></label><label>Bedrooms<select id="bedsFilter"><option value="">Any</option><option value="0">Studio</option><option value="1">1+</option><option value="2">2+</option><option value="3">3+</option><option value="4">4+</option></select></label><label class="full">Find property by name / ID<input id="inventoryQuery" placeholder="The Landon, 26074, ..."></label><label class="full">Astrid property<select id="inventorySelect"><option value="">Select a property</option></select></label><div id="inventoryInfo" class="pg-pick-info pg-hidden"></div><div class="full pg-actions"><button class="pg-btn primary" type="button" id="useInventory">+ Add selected property to proposal</button><button class="pg-btn" type="button" id="reloadInventory">Reload inventory</button></div><div class="full pg-meta" id="inventoryStatus" aria-live="polite">Reading inventory.csv from this website.</div></div><p class="pg-meta">Inventory details are not proof of real-time availability. Verify the property, unit, amenities and final offer before sending.</p></section>
+<section class="pg-panel"><h2>Property options</h2><div id="opts"></div><button class="pg-btn primary" id="add" type="button">+ Add property option</button></section></div>
+<aside class="pg-panel"><h2>Preview</h2><div class="pg-actions" style="margin-bottom:14px"><button class="pg-btn primary" id="t-mail" type="button">Email</button><button class="pg-btn" id="t-pdf" type="button">PDF & profiles</button></div><div class="pg-preview"><div id="out" class="pg-doc"></div></div><div class="pg-actions" style="margin-top:14px"><button class="pg-btn primary" id="copy" type="button">Copy email</button><button class="pg-btn" id="print" type="button">Print / Save as PDF</button></div><p id="msg" class="pg-meta" aria-live="polite"></p></aside></main>
+<dialog class="pg-modal" id="dp"><form id="fp"><h2>New property</h2><label>Name<input name="name" required></label><label>Address<input name="addr" required></label><label>Amenities (comma-separated)<input name="am"></label><label>Housekeeping<input name="hk"></label><label>Description<textarea name="desc" rows="3"></textarea></label><label>Room types (name | size | kitchen, one per line)<textarea name="units" rows="3"></textarea></label><div class="pg-actions"><button class="pg-btn" type="button" id="pc">Cancel</button><button class="pg-btn primary" type="submit">Save property</button></div></form></dialog><div id="printArea"></div>
 <script>
-(function(){
-"use strict";
-var $=function(i){return document.getElementById(i)};
-var esc=function(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
-var money=function(n){return"$"+(isFinite(n)?n:0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})};
-var MN=["January","February","March","April","May","June","July","August","September","October","November","December"];
-var pretty=function(d){if(!d)return"—";var p=d.split("-");return MN[+p[1]-1]+" "+(+p[2])+", "+p[0]};
-var nts=function(a,b){if(!a||!b)return 0;var d=(new Date(b)-new Date(a))/864e5;return d>0?Math.round(d):0};
-var store={get:function(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},
-  set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
-
-/* property library: starter properties + ones you add (saved in this browser) */
-var BASE=[
- {id:"midtown",name:"Midtown East ApartHotel",addr:"East 49th St. & 1st Ave. New York, NY, 10017",am:["24-Hour Front Desk","Elevator","Laundry Onsite","Pet-friendly property (addl fees and restrictions)"],hk:"Bi-weekly (complimentary)",desc:"",
-  units:[{n:"Studio Queen",s:"350 sq.ft.",k:"Fully equipped kitchen"},{n:"One Bedroom",s:"520 sq.ft.",k:"Fully equipped kitchen"}]},
- {id:"marmara",name:"The Marmara Residence",addr:"East 32nd St. & Park Ave. New York, NY, 10016",am:["24-Hour Front Desk","Elevator","Indoor Swimming Pool","Laundry Onsite"],hk:"Weekly (complimentary)",desc:"",
-  units:[{n:"Studio Queen",s:"400 sq.ft.",k:"Kitchenette with two-burner stoves"},{n:"One Bedroom Deluxe",s:"610 sq.ft.",k:"Kitchenette with two-burner stoves"}]},
- {id:"sora",name:"Sora Residences",addr:"E Hazel & Centinela Ave, Inglewood, CA 90302",am:["Resort-style Pool","Fitness Center","In-unit Laundry","High Speed WiFi","EV Charging","Outdoor Lounge"],hk:"On request",
-  desc:"Designed for effortless living, this modern Inglewood residence offers spacious, fully furnished apartments with stylish interiors and in-unit laundry, close to SoFi Stadium and LAX.",
-  units:[{n:"1BR / 1BA",s:"607 sq.ft.",k:"Fully equipped kitchen, stainless steel"}]}
-];
-var custom=store.get("ast.props",[]);
-var props=function(){return BASE.concat(custom)};
-var P=function(id){return props().filter(function(p){return p.id===id})[0]||props()[0]};
-
-var draft=store.get("ast.draft",null);
-var S=draft||{opts:[]};
-function newOpt(){var p=props()[0],u=p.units[0]||{};return{p:p.id,u:u.n||"",s:u.s||"",k:u.k||"",own:false,mi:"",mo:"",rate:"",basis:"night",tm:"waived",tp:14.75,dist:"",fees:[],photo:"",note:""}}
-if(!S.opts.length)S.opts.push(newOpt());
-var F=["pname","client","guest","mi","mo","valid","ref","gc"];
-F.forEach(function(f){if(S[f]!=null)$(f).value=S[f]});
-
-function save(){F.forEach(function(f){S[f]=$(f).value});
-  store.set("ast.draft",{pname:S.pname,client:S.client,guest:S.guest,mi:S.mi,mo:S.mo,valid:S.valid,ref:S.ref,gc:S.gc,
-   opts:S.opts.map(function(o){var c=JSON.parse(JSON.stringify(o));c.photo="";return c})})}
-
-function dates(o){return o.own?{a:o.mi,b:o.mo}:{a:$("mi").value,b:$("mo").value}}
-function totals(o){var d=dates(o),n=nts(d.a,d.b),r=parseFloat(o.rate)||0,acc=(o.basis==="night"?n:n/30)*r,fee=0;
-  o.fees.forEach(function(f){var a=parseFloat(f.amt)||0;fee+=f.freq==="night"?a*n:f.freq==="month"?a*n/30:a});
-  var pre=acc+fee,tax=pre*(parseFloat(o.tp)||0)/100,w=o.tm==="waived";
-  return{n:n,acc:acc,fee:fee,tax:tax,w:w,total:w?pre:pre+tax,r:r}}
-
-/* ---------- option cards ---------- */
-function optHtml(o,i){
-  var pr=P(o.p),t=totals(o),d=dates(o),sel=function(v,x){return v===x?" selected":""};
-  var short=t.n>0&&t.n<(o.minN||0);
-  return '<div class="opt" data-i="'+i+'"><div class="opt-h"><span>Option '+(i+1)+'</span>'
-   +(S.opts.length>1?'<button type="button" class="btn danger" data-a="rm" data-i="'+i+'">Remove</button>':'')+'</div>'
-   +'<div class="g"><label style="grid-column:1/-1">Property<select data-k="p">'
-   +props().map(function(p){return'<option value="'+p.id+'"'+sel(p.id,o.p)+'>'+esc(p.name)+'</option>'}).join("")
-   +'</select></label><button type="button" class="btn linky" data-a="newp" style="grid-column:1/-1;justify-self:start">+ New property</button>'
-   +'<label>Room type<input data-k="u" list="u'+i+'" value="'+esc(o.u)+'"><datalist id="u'+i+'">'+pr.units.map(function(u){return'<option value="'+esc(u.n)+'">'}).join("")+'</datalist></label>'
-   +'<label>Size<input data-k="s" value="'+esc(o.s)+'"></label>'
-   +'<label style="grid-column:1/-1">Kitchen<input data-k="k" value="'+esc(o.k)+'"></label>'
-   +'<label style="grid-column:1/-1">Photo (shown on the property profile)<input data-k="photo" type="file" accept="image/*"></label></div>'
-   +'<label class="check"><input type="checkbox" data-k="own"'+(o.own?" checked":"")+'> This option uses its own dates</label>'
-   +'<div class="g"><label>Move-in<input data-k="mi" type="date" value="'+d.a+'"'+(o.own?"":" disabled")+'></label>'
-   +'<label>Move-out<input data-k="mo" type="date" value="'+d.b+'"'+(o.own?"":" disabled")+'></label>'
-   +'<label>Nights<input data-o="n" value="'+t.n+'" readonly></label></div>'
-   +'<div class="g"><label>Daily rate (USD)<input data-k="rate" type="number" min="0" step="1" value="'+esc(o.rate)+'"></label>'
-   +'<label>Rate basis<select data-k="basis"><option value="night"'+sel("night",o.basis)+'>Per night</option><option value="month"'+sel("month",o.basis)+'>Per month</option></select></label>'
-   +'<label>Taxes<select data-k="tm"><option value="waived"'+sel("waived",o.tm)+'>Waived (exemption)</option><option value="added"'+sel("added",o.tm)+'>Added to total</option></select></label>'
-   +'<label>Tax %<input data-k="tp" type="number" min="0" step="0.01" value="'+esc(o.tp)+'"></label></div>'
-   +'<label>Distance from preferred location<input data-k="dist" value="'+esc(o.dist)+'" placeholder="e.g. 0.5 miles (11-minute walk)"></label>'
-   +'<div><span class="meta">Mandatory fees</span><div id="fees'+i+'" style="display:flex;flex-direction:column;gap:8px;margin:6px 0">'
-   +o.fees.map(function(f,j){return'<div class="feerow"><input data-f="label" data-j="'+j+'" value="'+esc(f.label)+'" placeholder="Cleaning"><input data-f="amt" data-j="'+j+'" type="number" min="0" value="'+esc(f.amt)+'">'
-     +'<select data-f="freq" data-j="'+j+'"><option value="once"'+sel("once",f.freq)+'>One-time</option><option value="night"'+sel("night",f.freq)+'>Per night</option><option value="month"'+sel("month",f.freq)+'>Per month</option></select>'
-     +'<button type="button" class="btn linky" data-a="rmfee" data-j="'+j+'">Remove</button></div>'}).join("")
-   +'</div><button type="button" class="btn linky" data-a="addfee">+ Add fee</button></div>'
-   +'<label>Notes (print in red on the proposal)<textarea data-k="note" rows="2">'+esc(o.note)+'</textarea></label>'
-   +'<div class="calc" data-calc></div><div class="warn" data-warn hidden></div></div>'}
-
-function calcHtml(o){var t=totals(o);
-  return'<div><span>'+(o.basis==="night"?t.n+" nights × "+money(t.r):(t.n/30).toFixed(2)+" months × "+money(t.r))+'</span><span>'+money(t.acc)+'</span></div>'
-   +'<div><span>Fees</span><span>'+(t.fee?money(t.fee):"None")+'</span></div>'
-   +'<div><span>Applicable taxes</span><span'+(t.w?' style="text-decoration:line-through"':'')+'>'+money(t.tax)+'</span></div>'
-   +'<div class="tot"><span>Total for the stay</span><span>'+money(t.total)+'</span></div>'}
-
-function renderOpts(){$("opts").innerHTML=S.opts.map(optHtml).join("");patch()}
-function patch(){S.opts.forEach(function(o,i){var c=document.querySelector('.opt[data-i="'+i+'"]');if(!c)return;
-  var t=totals(o),d=dates(o);c.querySelector("[data-calc]").innerHTML=calcHtml(o);
-  c.querySelector('[data-o="n"]').value=t.n;
-  if(!o.own){c.querySelector('[data-k="mi"]').value=d.a;c.querySelector('[data-k="mo"]').value=d.b}});
-  save();preview()}
-
-/* ---------- previews ---------- */
-var tab="mail";
-function logo(){return'<img src="logo.png" alt="Astrid Living" onerror="this.remove()">'}
-function mailHtml(){var h='<div class="hd">'+logo()+'</div>';
-  h+="Dear "+esc($("client").value.trim()||"[Client Name]")+",<br><br>Thank you for considering Astrid Living for the upcoming stay.<br>We are pleased to share the option"+(S.opts.length>1?"s":"")+" below for your review.";
-  if($("gc").value.trim())h+="<br>"+esc($("gc").value.trim());
-  h+="<br><br><b>Guest Name:</b> "+esc($("guest").value||"TBD");
-  S.opts.forEach(function(o,i){var p=P(o.p),t=totals(o),d=dates(o);
-    h+='<hr><b>Option '+(i+1)+"</b><br><b>"+esc(p.name)+"</b><br>"+esc(p.addr)+"<br><br>"
-     +"<b>Move in:</b> "+pretty(d.a)+" &nbsp; <b>Move out:</b> "+pretty(d.b)+" ("+t.n+" nights)<br>"
-     +"<b>Distance to "+esc($("ref").value||"preferred location")+":</b> "+esc(o.dist||"—")+"<br>"
-     +"<b>Apartment type &amp; size:</b> "+esc(o.u)+" ("+esc(o.s)+")"+(o.k?" - "+esc(o.k):"")+"<br>"
-     +"<b>Rate:</b> "+money(t.r)+" per "+(o.basis==="night"?"night":"month")+"<br>"
-     +"<b>Total for the stay:</b> "+money(t.total)+(t.w?" (taxes waived with Tax Exemption Certificate)":" (taxes included)")+"<br>"
-     +"<b>Housekeeping:</b> "+esc(p.hk||"—")+"<br><b>Property Amenities:</b> "+esc(p.am.join(", "))+"<br>"
-     +(o.note?'<span class="red">Notes: '+esc(o.note)+"</span><br>":"")});
-  return h+'<hr>All apartments are fully furnished with equipped kitchens or kitchenettes, linens, towels, complimentary Wi-Fi, and cable/smart TV.<br>'
-   +'<span class="fine">Please note: Website images are for illustration and may not reflect the exact design, décor, or layout of your unit.</span><br><br>'
-   +"This proposal is valid until <b>"+pretty($("valid").value)+"</b>.<br><br>Best regards,<br><b>Karina</b><br>Astrid Living"}
-
-function pdfHtml(){
-  var rows=S.opts.map(function(o,i){var p=P(o.p),t=totals(o),d=dates(o);
-    return"<tr><td>Option "+(i+1)+"</td><td><b>"+esc(p.name)+"</b><br>"+esc(p.addr)+"</td><td>"+esc(o.u)+"<br>"+esc(o.s)+"</td><td>"+pretty(d.a)+"<br>"+pretty(d.b)+"<br>"+t.n+" nights</td><td>"+esc(o.dist||"—")+"</td><td>"+money(t.r)+"</td><td><b>"+money(t.total)+"</b>"+(t.w?"<br>tax waived":"")+"</td></tr>"}).join("");
-  var h='<div class="pgb"><div class="hd">'+logo()+'<b style="margin-left:auto">'+esc($("pname").value)+"</b></div>"
-   +"<h3>"+esc($("client").value||"[Client Name]")+"</h3><p class='fine'>Guest: "+esc($("guest").value||"TBD")+" · Distances measured to "+esc($("ref").value||"—")+" · Valid until "+pretty($("valid").value)+"</p>"
-   +"<table><tr><th></th><th>Property</th><th>Unit</th><th>Dates</th><th>Distance</th><th>Rate</th><th>Total</th></tr>"+rows+"</table>"
-   +($("gc").value.trim()?"<p>"+esc($("gc").value.trim())+"</p>":"")+"</div>";
-  S.opts.forEach(function(o){var p=P(o.p);
-    h+='<div class="pgb"><div class="hd">'+logo()+"</div>"+(o.photo?'<img class="ph" src="'+o.photo+'" alt="">':"")
-     +"<h3>"+esc(p.name)+"</h3><p><i>"+esc(p.addr)+"</i><br><b>"+esc(o.dist||"")+(o.dist&&$("ref").value?" to "+esc($("ref").value):"")+"</b></p>"
-     +(p.desc?"<p>"+esc(p.desc)+"</p>":"")+"<b>Building highlights</b><ul>"+p.am.map(function(a){return"<li>"+esc(a)+"</li>"}).join("")+"</ul>"
-     +"<b>Services</b><ul><li>Housekeeping — "+esc(p.hk||"On request")+"</li></ul>"
-     +"<b>Apartment features</b><ul><li>"+esc(o.u)+" — "+esc(o.s)+"</li>"+(o.k?"<li>"+esc(o.k)+"</li>":"")+"</ul>"
-     +'<p class="fine">Website images are for illustration and may not reflect the exact design, décor or layout of your unit.</p></div>'});
-  return h}
-function preview(){$("out").innerHTML=tab==="mail"?mailHtml():pdfHtml()}
-
-/* ---------- events ---------- */
-function toast(m){$("msg").textContent=m;setTimeout(function(){$("msg").textContent=""},3500)}
-F.forEach(function(f){$(f).addEventListener("input",patch)});
-$("files").addEventListener("change",function(){var n=[].map.call(this.files,function(f){return f.name});$("flist").textContent=n.length?"Attach to your email: "+n.join(", "):"Files are listed here only; attach them to your email manually."});
-$("opts").addEventListener("input",function(e){var el=e.target,c=el.closest(".opt");if(!c)return;var o=S.opts[+c.dataset.i];
-  if(el.dataset.f){o.fees[+el.dataset.j][el.dataset.f]=el.value;patch();return}
-  var k=el.dataset.k;if(!k)return;
-  if(k==="photo"){var fl=el.files[0];if(!fl)return;var r=new FileReader();r.onload=function(){o.photo=r.result;preview()};r.readAsDataURL(fl);return}
-  o[k]=el.type==="checkbox"?el.checked:el.value;
-  if(k==="p"){var u=P(o.p).units[0]||{};o.u=u.n||"";o.s=u.s||"";o.k=u.k||"";renderOpts();return}
-  if(k==="u"){var m=P(o.p).units.filter(function(u){return u.n===o.u})[0];if(m){o.s=m.s;o.k=m.k;renderOpts();return}}
-  if(k==="own"){if(o.own){o.mi=$("mi").value;o.mo=$("mo").value}renderOpts();return}
-  patch()});
-$("opts").addEventListener("click",function(e){var b=e.target.closest("[data-a]");if(!b)return;var c=b.closest(".opt"),i=c?+c.dataset.i:0,o=S.opts[i],a=b.dataset.a;
-  if(a==="rm"){S.opts.splice(i,1);renderOpts()}
-  if(a==="addfee"){o.fees.push({label:"Cleaning",amt:150,freq:"once"});renderOpts()}
-  if(a==="rmfee"){o.fees.splice(+b.dataset.j,1);renderOpts()}
-  if(a==="newp"){$("fp").reset();$("fp").dataset.i=i;$("dp").showModal()}});
-$("add").addEventListener("click",function(){S.opts.push(newOpt());renderOpts()});
-$("pc").addEventListener("click",function(){$("dp").close()});
-$("fp").addEventListener("submit",function(e){e.preventDefault();var f=new FormData(this),id="c"+Date.now();
-  var units=(f.get("units")||"").split("\n").map(function(l){var p=l.split("|").map(function(x){return x.trim()});return p[0]?{n:p[0],s:p[1]||"",k:p[2]||""}:null}).filter(Boolean);
-  custom.push({id:id,name:f.get("name"),addr:f.get("addr"),am:(f.get("am")||"").split(",").map(function(x){return x.trim()}).filter(Boolean),hk:f.get("hk"),desc:f.get("desc"),units:units});
-  store.set("ast.props",custom);var o=S.opts[+this.dataset.i];o.p=id;var u=units[0]||{};o.u=u.n||"";o.s=u.s||"";o.k=u.k||"";
-  $("dp").close();renderOpts()});
-["mail","pdf"].forEach(function(k){$("t-"+k).addEventListener("click",function(){tab=k;
-  ["mail","pdf"].forEach(function(x){$("t-"+x).setAttribute("aria-selected",x===k?"true":"false")});preview()})});
-$("copy").addEventListener("click",function(){var h=mailHtml(),tmp=document.createElement("div");tmp.innerHTML=h;var txt=tmp.innerText;
-  if(navigator.clipboard&&window.ClipboardItem){navigator.clipboard.write([new ClipboardItem({"text/html":new Blob([h],{type:"text/html"}),"text/plain":new Blob([txt],{type:"text/plain"})})]).then(function(){toast("Email copied.")},function(){toast("Could not copy. Select the text and copy manually.")})}
-  else if(navigator.clipboard){navigator.clipboard.writeText(txt).then(function(){toast("Email copied.")},function(){toast("Could not copy.")})}});
-$("print").addEventListener("click",function(){$("printArea").innerHTML='<div class="doc">'+pdfHtml()+"</div>";document.body.classList.add("printing");window.print()});
-window.addEventListener("afterprint",function(){document.body.classList.remove("printing");$("printArea").innerHTML=""});
-
-renderOpts();
-if("serviceWorker"in navigator)window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})});
+(function(){'use strict';
+const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),money=n=>'$'+(Number.isFinite(n)?n:0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}),num=v=>Number.parseFloat(v)||0,months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const date=d=>{if(!d)return '—';const a=d.split('-');return months[+a[1]-1]+' '+(+a[2])+', '+a[0]},nights=(a,b)=>a&&b?Math.max(0,Math.round((Date.parse(b+'T12:00:00')-Date.parse(a+'T12:00:00'))/86400000)):0;
+const get=(k,def)=>{try{return JSON.parse(localStorage.getItem(k))??def}catch{return def}},set=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
+const BASE=[{id:'midtown',name:'Midtown East ApartHotel',addr:'East 49th St. & 1st Ave. New York, NY 10017',am:['24-Hour Front Desk','Elevator','Laundry Onsite'],hk:'Bi-weekly (complimentary)',desc:'',units:[{n:'Studio Queen',s:'350 sq.ft.',k:'Fully equipped kitchen'},{n:'One Bedroom',s:'520 sq.ft.',k:'Fully equipped kitchen'}]},{id:'marmara',name:'The Marmara Residence',addr:'East 32nd St. & Park Ave. New York, NY 10016',am:['24-Hour Front Desk','Elevator','Indoor Swimming Pool','Laundry Onsite'],hk:'Weekly (complimentary)',desc:'',units:[{n:'Studio Queen',s:'400 sq.ft.',k:'Kitchenette with two-burner stoves'}]},{id:'sora',name:'Sora Residences',addr:'E Hazel & Centinela Ave, Inglewood, CA 90302',am:['Pool','Fitness Center','In-unit Laundry','Wi-Fi'],hk:'On request',desc:'Modern furnished residence.',units:[{n:'1BR / 1BA',s:'607 sq.ft.',k:'Fully equipped kitchen'}]}];
+let custom=get('ast.props',[]),inventory=[],inventoryItems=[],tab='mail',S=get('ast.draft',{opts:[]});if(!Array.isArray(S.opts))S.opts=[];const fields=['pname','client','guest','mi','mo','valid','ref','gc'];fields.forEach(k=>{if(S[k]!=null)$(k).value=S[k]});
+const props=()=>BASE.concat(custom,inventoryItems),P=id=>props().find(p=>p.id===id)||null;
+function newOpt(id){const p=P(id)||BASE[0],u=p.units[0]||{};return{p:p.id,u:u.n||'',s:u.s||'',k:u.k||'',own:false,mi:'',mo:'',rate:'',basis:'night',tm:'waived',tp:14.75,dist:'',fees:[],photo:'',note:''}}
+if(!S.opts.length)S.opts.push(newOpt());S.opts.forEach(o=>{o.fees=Array.isArray(o.fees)?o.fees:[]});
+function save(){fields.forEach(k=>S[k]=$(k).value);set('ast.draft',{...Object.fromEntries(fields.map(k=>[k,S[k]])),opts:S.opts.map(o=>({...o,photo:''}))})}
+const range=o=>o.own?{a:o.mi||'',b:o.mo||''}:{a:$('mi').value,b:$('mo').value};
+function totals(o){const d=range(o),n=nights(d.a,d.b),r=num(o.rate),acc=(o.basis==='month'?n/30:n)*r,fees=o.fees.reduce((s,f)=>s+num(f.amt)*(f.freq==='night'?n:f.freq==='month'?n/30:1),0),tax=(acc+fees)*num(o.tp)/100,waived=o.tm==='waived';return{n,r,acc,fees,tax,waived,total:acc+fees+(waived?0:tax)}}
+const options=(choices,current)=>choices.map(([value,text])=>`<option value="${esc(value)}"${String(value)===String(current)?' selected':''}>${esc(text)}</option>`).join('');
+function optHtml(o,i){const p=P(o.p)||BASE[0],t=totals(o),d=range(o);return `<article class="pg-opt" data-i="${i}"><div class="pg-opt-head"><strong>Option ${i+1}</strong>${S.opts.length>1?`<button type="button" class="pg-btn" data-act="remove">Remove</button>`:''}</div><div class="pg-grid"><label class="pg-wide">Property<select data-k="p">${options(props().map(x=>[x.id,x.name+(x.city?' — '+x.city:'')]),o.p)}</select></label><button class="pg-btn" type="button" data-act="custom">+ New property</button>${p.url?`<a class="pg-btn" target="_blank" rel="noopener noreferrer" href="${esc(p.url)}">Open property page ↗</a>`:''}<label>Room type<input data-k="u" list="units${i}" value="${esc(o.u)}"><datalist id="units${i}">${(p.units||[]).map(u=>`<option value="${esc(u.n)}"></option>`).join('')}</datalist></label><label>Size<input data-k="s" value="${esc(o.s)}"></label><label class="pg-wide">Kitchen<input data-k="k" value="${esc(o.k)}"></label><label class="pg-wide">Upload replacement photo<input data-k="photo" type="file" accept="image/*"></label></div><label class="pg-check"><input type="checkbox" data-k="own" ${o.own?'checked':''}>This option uses its own dates</label><div class="pg-grid"><label>Move-in<input data-k="mi" type="date" value="${esc(d.a)}" ${o.own?'':'disabled'}></label><label>Move-out<input data-k="mo" type="date" value="${esc(d.b)}" ${o.own?'':'disabled'}></label><label>Nights<input value="${t.n}" readonly data-nights></label></div><div class="pg-grid"><label>Rate (USD)<input data-k="rate" type="number" min="0" step="0.01" value="${esc(o.rate)}"></label><label>Rate basis<select data-k="basis">${options([['night','Per night'],['month','Per 30 days']],o.basis)}</select></label><label>Taxes<select data-k="tm">${options([['waived','Waived (exemption)'],['added','Added to total']],o.tm)}</select></label><label>Tax %<input data-k="tp" type="number" min="0" step="0.01" value="${esc(o.tp)}"></label></div><label>Distance from preferred location<input data-k="dist" placeholder="e.g. 0.5 miles (11-minute walk)" value="${esc(o.dist)}"></label><div><span class="pg-meta">Mandatory fees</span>${o.fees.map((f,j)=>`<div class="pg-fee"><input aria-label="Fee name" data-fee="label" data-j="${j}" value="${esc(f.label)}"><input aria-label="Fee amount" type="number" min="0" data-fee="amt" data-j="${j}" value="${esc(f.amt)}"><select data-fee="freq" data-j="${j}">${options([['once','One-time'],['night','Per night'],['month','Per 30 days']],f.freq)}</select><button class="pg-btn" type="button" data-act="removefee" data-j="${j}">×</button></div>`).join('')}<button class="pg-btn" type="button" data-act="addfee">+ Add fee</button></div><label>Notes (shown in red)<textarea rows="2" data-k="note">${esc(o.note)}</textarea></label><div data-total class="pg-totals"></div>${!o.rate?'<div class="pg-alert">Rate not entered — confirm final quoted pricing before sending.</div>':''}</article>`}
+function totalsHtml(o){const t=totals(o);return `<div><span>${o.basis==='night'?`${t.n} nights × ${money(t.r)}`:`${(t.n/30).toFixed(2)} × ${money(t.r)} / 30 days`}</span><span>${money(t.acc)}</span></div><div><span>Fees</span><span>${money(t.fees)}</span></div><div><span>Taxes ${t.waived?'(waived)':''}</span><span>${t.waived?'$0.00':money(t.tax)}</span></div><div class="total"><span>Total for stay</span><span>${money(t.total)}</span></div>`}
+function renderOpts(){$('opts').innerHTML=S.opts.map(optHtml).join('');patch()}
+function patch(){S.opts.forEach((o,i)=>{const e=document.querySelector(`.pg-opt[data-i="${i}"]`);if(!e)return;e.querySelector('[data-total]').innerHTML=totalsHtml(o);const d=range(o);e.querySelector('[data-nights]').value=totals(o).n;if(!o.own){e.querySelector('[data-k=mi]').value=d.a;e.querySelector('[data-k=mo]').value=d.b}});save();preview()}
+const logo=()=>'<img src="logo.png" alt="Astrid Living">';
+function mailHtml(){let h=`<div class="heading">${logo()}</div>Dear ${esc($('client').value.trim()||'[Client Name]')},<br><br>Thank you for considering Astrid Living for the upcoming stay.<br>We are pleased to share the following option${S.opts.length>1?'s':''} for your review.`;if($('gc').value.trim())h+='<br>'+esc($('gc').value.trim());h+=`<br><br><b>Guest Name:</b> ${esc($('guest').value||'TBD')}`;S.opts.forEach((o,i)=>{const p=P(o.p)||BASE[0],t=totals(o),d=range(o);h+=`<hr><b>Option ${i+1}: ${esc(p.name)}</b><br>${esc(p.addr||p.city||'Address to be confirmed')}<br><b>Move in:</b> ${date(d.a)} &nbsp; <b>Move out:</b> ${date(d.b)} (${t.n} nights)<br><b>Distance to ${esc($('ref').value||'preferred location')}:</b> ${esc(o.dist||'To be confirmed')}<br><b>Apartment type & size:</b> ${esc(o.u)} (${esc(o.s||'Size to be confirmed')}) ${o.k?' — '+esc(o.k):''}<br><b>Rate:</b> ${o.rate?money(t.r):'To be quoted'} per ${o.basis==='night'?'night':'30 days'}<br><b>Total for stay:</b> ${o.rate?money(t.total):'To be confirmed'} ${o.rate?(t.waived?'(taxes waived, subject to applicable exemption)':'(includes configured taxes)'):''}<br><b>Housekeeping:</b> ${esc(p.hk||'To be confirmed')}<br><b>Property amenities:</b> ${esc(p.am.length?p.am.join(', '):'To be confirmed')}<br>${o.note?`<span class="red">Notes: ${esc(o.note)}</span><br>`:''}`});return h+`<hr><span class="fine">Amenities, availability, rates and specific unit configuration are subject to final confirmation. Property photos may be representative and not the exact unit.</span><br><br>This proposal is valid until <b>${date($('valid').value)}</b>.<br><br>Best regards,<br><b>Karina</b><br>Astrid Living`}
+function pdfHtml(){let h=`<section class="page"><div class="heading">${logo()}<strong>${esc($('pname').value)}</strong></div><h3>${esc($('client').value||'[Client Name]')}</h3><p class="fine">Guest: ${esc($('guest').value||'TBD')} · Preferred location: ${esc($('ref').value||'—')} · Valid until ${date($('valid').value)}</p><table><thead><tr><th>Option</th><th>Property</th><th>Unit</th><th>Dates</th><th>Distance</th><th>Rate</th><th>Total</th></tr></thead><tbody>${S.opts.map((o,i)=>{const p=P(o.p)||BASE[0],t=totals(o),d=range(o);return `<tr><td>${i+1}</td><td><b>${esc(p.name)}</b><br>${esc(p.addr||p.city||'TBC')}</td><td>${esc(o.u)}<br>${esc(o.s)}</td><td>${date(d.a)}<br>${date(d.b)}<br>${t.n} nights</td><td>${esc(o.dist||'TBC')}</td><td>${o.rate?money(t.r):'TBC'}</td><td>${o.rate?money(t.total):'TBC'}</td></tr>`}).join('')}</tbody></table>${$('gc').value.trim()?`<p>${esc($('gc').value.trim())}</p>`:''}</section>`;S.opts.forEach(o=>{const p=P(o.p)||BASE[0],photo=o.photo||p.image||'';h+=`<section class="page"><div class="heading">${logo()}</div>${((photo&&/^https:\/\//.test(photo))||photo.startsWith('data:image/'))?`<img class="photo" src="${esc(photo)}" alt="Property photo">`:''}<h3>${esc(p.name)}</h3><p><em>${esc(p.addr||p.city||'Address to be confirmed')}</em><br><b>${esc(o.dist||'Distance to be confirmed')}</b></p>${p.desc?`<p>${esc(p.desc)}</p>`:''}<b>Building highlights</b><ul>${(p.am||[]).map(a=>`<li>${esc(a)}</li>`).join('')||'<li>To be confirmed</li>'}</ul><b>Services</b><ul><li>Housekeeping — ${esc(p.hk||'To be confirmed')}</li></ul><b>Apartment features</b><ul><li>${esc(o.u)} ${o.s?' — '+esc(o.s):''}</li>${o.k?`<li>${esc(o.k)}</li>`:''}</ul>${o.note?`<p class="red">${esc(o.note)}</p>`:''}${p.url?`<p class="fine">Property page: ${esc(p.url)}</p>`:''}<p class="fine">Photos may be representative. All property details, rate, tax treatment and availability require final verification.</p></section>`});return h}
+function preview(){$('out').innerHTML=tab==='mail'?mailHtml():pdfHtml()}
+function status(msg){$('msg').textContent=msg}
+fields.forEach(k=>$(k).addEventListener('input',patch));$('files').addEventListener('change',e=>{$('flist').textContent=[...e.target.files].map(x=>x.name).join(', ')||'Attach these to your outgoing email manually.'});
+$('opts').addEventListener('input',e=>{const el=e.target,c=el.closest('.pg-opt');if(!c)return;const o=S.opts[+c.dataset.i];if(el.dataset.fee){o.fees[+el.dataset.j][el.dataset.fee]=el.value;patch();return}const k=el.dataset.k;if(!k)return;if(k==='photo'){const file=el.files?.[0];if(!file)return;const reader=new FileReader;reader.onload=()=>{o.photo=reader.result;preview()};reader.readAsDataURL(file);return}o[k]=el.type==='checkbox'?el.checked:el.value;if(k==='p'){const p=P(o.p)||BASE[0],u=p.units[0]||{};o.u=u.n||'';o.s=u.s||'';o.k=u.k||'';o.photo='';renderOpts();return}if(k==='u'){const u=(P(o.p)?.units||[]).find(u=>u.n===o.u);if(u){o.s=u.s;o.k=u.k;renderOpts();return}}if(k==='own'){if(o.own){o.mi=$('mi').value;o.mo=$('mo').value}renderOpts();return}patch()});
+$('opts').addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const i=+b.closest('.pg-opt').dataset.i,o=S.opts[i];switch(b.dataset.act){case 'remove':S.opts.splice(i,1);break;case 'addfee':o.fees.push({label:'Cleaning',amt:150,freq:'once'});break;case 'removefee':o.fees.splice(+b.dataset.j,1);break;case 'custom':$('fp').reset();$('fp').dataset.i=i;$('dp').showModal();return}renderOpts()});
+$('add').addEventListener('click',()=>{S.opts.push(newOpt());renderOpts()});$('pc').addEventListener('click',()=>$('dp').close());$('fp').addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.target),id='c'+Date.now(),units=String(f.get('units')||'').split('\n').map(l=>l.split('|').map(s=>s.trim())).filter(p=>p[0]).map(p=>({n:p[0],s:p[1]||'',k:p[2]||''}));const p={id,name:f.get('name'),addr:f.get('addr'),am:String(f.get('am')||'').split(',').map(s=>s.trim()).filter(Boolean),hk:f.get('hk'),desc:f.get('desc'),units};custom.push(p);set('ast.props',custom);const o=S.opts[+e.target.dataset.i];Object.assign(o,{p:id,u:units[0]?.n||'',s:units[0]?.s||'',k:units[0]?.k||'',photo:''});$('dp').close();renderOpts()});
+['mail','pdf'].forEach(k=>$('t-'+k).addEventListener('click',()=>{tab=k;['mail','pdf'].forEach(x=>$('t-'+x).classList.toggle('primary',x===k));preview()}));$('copy').addEventListener('click',async()=>{const h=mailHtml(),el=document.createElement('div');el.innerHTML=h;const txt=el.innerText;try{if(window.ClipboardItem){await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([h],{type:'text/html'}),'text/plain':new Blob([txt],{type:'text/plain'})})])}else await navigator.clipboard.writeText(txt);status('Email copied.')}catch{status('Copy failed: select and copy the text manually.')}});$('print').addEventListener('click',()=>{$('printArea').innerHTML='<div class="pg-doc">'+pdfHtml()+'</div>';document.body.classList.add('printing');window.print()});window.addEventListener('afterprint',()=>{document.body.classList.remove('printing');$('printArea').innerHTML='' });
+// CSV parser correctly handles quoted fields, embedded commas, newlines and doubled quotes.
+function csvParse(text){const rows=[];let row=[],field='',quoted=false;for(let i=0;i<text.length;i++){const c=text[i];if(quoted){if(c==='"'&&text[i+1]==='"'){field+='"';i++}else if(c==='"')quoted=false;else field+=c}else if(c==='"')quoted=true;else if(c===','){row.push(field);field=''}else if(c==='\n'||c==='\r'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(field);if(row.some(s=>s.trim()))rows.push(row);row=[];field=''}else field+=c}if(field||row.length){row.push(field);rows.push(row)}const keys=(rows.shift()||[]).map(x=>x.replace(/^\ufeff/,'').trim());return rows.map(values=>Object.fromEntries(keys.map((key,i)=>[key,values[i]||''])))}
+function realUrl(url){try{const u=new URL(url);return u.protocol==='https:'?u.href:''}catch{return''}}
+function inventoryProperty(row,i){const amen=(row.amenities||'').split(/[|;,]/).map(x=>x.trim()).filter(Boolean);const beds=Number(row.beds),bath=Number(row.baths);const room=(Number.isFinite(beds)?(beds===0?'Studio':beds+'BR'):'Apartment')+(row.baths?' / '+bath+'BA':'');return{id:'inv-'+i,name:row.name,addr:row.address||[row.neighborhood,row.city].filter(Boolean).join(', '),city:row.city,am:amen,hk:'',desc:row.description||'',url:realUrl(row.url),image:realUrl(row.image),units:[{n:room,s:row.sqft?row.sqft+' sq.ft.':'',k:''}],inventoryRow:row}}
+function filterInventory(){const city=$('cityFilter').value,q=$('inventoryQuery').value.trim().toLowerCase(),beds=$('bedsFilter').value;const list=inventoryItems.filter(p=>{const r=p.inventoryRow;return(!city||r.city===city)&&(!beds||Number(r.beds)>=Number(beds))&&(!q||[r.name,r.city,r.neighborhood,r.notes,r.url].join(' ').toLowerCase().includes(q))}).slice(0,150);const previous=$('inventorySelect').value;$('inventorySelect').innerHTML='<option value="">Select a property ('+list.length+(list.length===150?'+':'')+' shown)</option>'+options(list.map(p=>[p.id,p.name+' — '+p.city]),previous);showInventory();$('inventoryStatus').textContent=inventoryItems.length?`${list.length}${list.length===150?'+':''} matching properties displayed. Refine your search to narrow results.`:'Inventory unavailable.'}
+function showInventory(){const p=P($('inventorySelect').value),box=$('inventoryInfo');if(!p||!p.inventoryRow){box.classList.add('pg-hidden');box.innerHTML='';return}const r=p.inventoryRow;box.classList.remove('pg-hidden');box.innerHTML=(p.image?`<img src="${esc(p.image)}" alt="Property photo" loading="lazy">`:'')+`<div><strong>${esc(p.name)}</strong><div class="pg-meta">${esc([r.city,r.neighborhood,r.beds+' bed',r.baths?r.baths+' bath':''].filter(Boolean).join(' · '))}</div>${p.url?`<a target="_blank" rel="noopener noreferrer" href="${esc(p.url)}">View Astrid property ↗</a>`:''}<div class="pg-meta">${esc(p.am.join(', '))}</div></div>`}
+$('cityFilter').addEventListener('change',filterInventory);$('bedsFilter').addEventListener('change',filterInventory);$('inventoryQuery').addEventListener('input',filterInventory);$('inventorySelect').addEventListener('change',showInventory);
+$('useInventory').addEventListener('click',()=>{const id=$('inventorySelect').value;if(!id){$('inventoryStatus').textContent='Choose a property before adding it.';return}S.opts.push(newOpt(id));renderOpts();$('inventoryStatus').textContent='Property added. Enter the rate, fees and confirm the details.'});
+async function loadInventory(){try{$('inventoryStatus').textContent='Loading inventory.csv…';const r=await fetch('inventory.csv',{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);inventory=csvParse(await r.text()).filter(r=>r.name&&r.provider==='Astrid Living');inventoryItems=inventory.map(inventoryProperty);$('inventoryCount').textContent=inventoryItems.length+' properties';const cities=[...new Set(inventory.map(r=>r.city).filter(Boolean))].sort((a,b)=>a.localeCompare(b));$('cityFilter').innerHTML='<option value="">All cities</option>'+options(cities.map(c=>[c,c]),'');filterInventory();renderOpts()}catch(err){$('inventoryCount').textContent='Unavailable';$('inventoryStatus').textContent='Could not load inventory.csv ('+err.message+'). Upload inventory.csv to the same GitHub repository folder as proposal.html.';renderOpts()}}
+$('reloadInventory').addEventListener('click',loadInventory);renderOpts();loadInventory();
 })();
-</script>
-</body>
-</html>
+</script></body></html>
