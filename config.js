@@ -16,4 +16,4 @@ window.AUTH_EMAIL_FEATURES = false;  // true: "Forgot password" / "Create accoun
 // Feedback button: responses are saved to Supabase (table "feedback", see supabase/feedback.sql). If Supabase is not set up,
 // set an email address here and the button opens a pre-filled email instead ("" = no fallback).
 window.FEEDBACK_EMAIL = "";
-window.PHOTOS_URL = "https://astrid-photos.karinaastridliving.workers.dev";
+window.PHOTOS_URL = "https://astrid-photos.karinaastridliving.workers.dev/";
