@@ -1,0 +1,12 @@
+# Pre-publication approval checklist
+- [ ] Objective, platform, date/time zone, owner and final CTA approved
+- [ ] Product names, descriptions, offer, price and stock verified
+- [ ] Images, music, talent, testimonials and UGC rights cleared
+- [ ] Claims supported; no fabricated proof or artificial scarcity
+- [ ] Mandatory disclosures/permissions/policy checked
+- [ ] Final caption, on-screen text, subtitles and alt text reviewed
+- [ ] Localized copy reviewed by appropriate speaker for sensitive/flagship campaigns
+- [ ] Links, tracking tags, landing page and lead routing tested
+- [ ] Creative sizing and safe zones checked against current platform guidance
+- [ ] Final approval recorded; publishing owner assigned
+- [ ] Post-launch monitoring and customer response owner assigned
